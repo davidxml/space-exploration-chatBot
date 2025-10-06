@@ -25,8 +25,6 @@ class Chatbot:
         self.questions = [item["question"] for item in self.knowledge_base]
         self.answers =  [item["answer"] for item in self.knowledge_base]
 
-        # Preprocess questions
-        self.processed_questions = [preprocess_text(q) for q in self.questions]
 
         # Build TF_IDF vectorizer
         self.vectorizer = TfidfVectorizer(tokenizer= preprocess_text)
