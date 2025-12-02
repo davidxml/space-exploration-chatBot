@@ -1,9 +1,9 @@
-fastapi==0.109.2
-uvicorn[standard]==0.27.1
-langchain==0.1.12
-langchain-groq==0.0.1
-langchain-community==0.0.28
-python-dotenv==1.0.1
-requests==2.31.0
-pydantic==2.6.3
+fastapi
+uvicorn[standard]
+langchain
+langchain-groq
+langchain-community
+python-dotenv
+requests
+pydantic
 faiss-cpu
