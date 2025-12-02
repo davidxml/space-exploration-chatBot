@@ -3,33 +3,41 @@ from typing import List, Dict
 
 class IngestionEngine:
     """
-    Serves as the Digestive system for the ChatBot.
+    Handles the loading and parsing of raw text data from the file system.
+    Converts unstructured text files into structured Document objects for vector storage.
     """
+
     def __init__(self, raw_data_path: str = "data/raw"):
         """
-        Initialize the engine pointing to where the .txt files live.
+        Initializes the IngestionEngine.
+
+        Args:
+            raw_data_path (str): The relative path to the directory containing .txt files.
         """
         self.raw_data_path = raw_data_path
 
     def load_and_process_files(self) -> List[Dict]:
         """
-        Reads all .txt files in the raw directory.
-        Parses specific 'Q: ... A: ...' format.
-        Returns a list of clean 'documents' ready for the AI.
+        Iterates through the raw data directory, reads all .txt files, and processes
+        them into a list of structured dictionaries.
+
+        Returns:
+            List[Dict]: A list of document dictionaries containing 'text' and 'metadata'.
         """
         documents = []
         
-        # 1. Check if directory exists
+        # Verify directory existence before processing
         if not os.path.exists(self.raw_data_path):
             print(f"Warning: Directory {self.raw_data_path} not found.")
             return []
 
-        # 2. Loop through every file (planets.txt, missions.txt, etc.)
+        # Iterate through files in the specified directory
         for filename in os.listdir(self.raw_data_path):
             if filename.endswith(".txt"):
                 file_path = os.path.join(self.raw_data_path, filename)
                 print(f"Processing: {filename}...")
                 
+                # Parse the individual file
                 new_docs = self._parse_qa_file(file_path, filename)
                 documents.extend(new_docs)
                 
@@ -38,8 +46,18 @@ class IngestionEngine:
 
     def _parse_qa_file(self, file_path: str, source_name: str) -> List[Dict]:
         """
-        Custom parser for UrbanSpace data format.
-        Combines Q and A into a single semantic block.
+        Parses a file containing Q&A blocks separated by double newlines.
+        
+        Structure expected:
+        Q: [Question]
+        A: [Answer]
+        
+        Args:
+            file_path (str): Full path to the file.
+            source_name (str): Name of the file (used for metadata).
+
+        Returns:
+            List[Dict]: Extracted documents.
         """
         clean_docs = []
         
@@ -47,7 +65,7 @@ class IngestionEngine:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
-            # Split by double newlines (how your data is structured)
+            # Split content by double newlines to isolate Q&A pairs
             blocks = content.split('\n\n')
             
             for block in blocks:
@@ -55,10 +73,10 @@ class IngestionEngine:
                 if not lines:
                     continue
                 
-                # Extract the text
+                # Flatten lines into a single string for storage
                 text_content = " ".join(lines)
                 
-                # Only keep blocks that look like data
+                # Filter for valid data blocks containing Question identifiers
                 if "Q:" in text_content or "A:" in text_content:
                     doc = {
                         "text": text_content,
@@ -71,13 +89,14 @@ class IngestionEngine:
                     
         except Exception as e:
             print(f"Error parsing {source_name}: {e}")
-
+            
         return clean_docs
 
+# --- Execution Entry Point (For testing module in isolation) ---
 if __name__ == "__main__":
     engine = IngestionEngine()
+    # Trigger the load process and print the first result for verification
     data = engine.load_and_process_files()
-    # Preview the first chunk
     if data:
         print("\n--- Sample Chunk ---")
         print(data[0])
