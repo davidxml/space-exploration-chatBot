@@ -6,7 +6,7 @@ __pycache__/
 
 # Virtual environments
 venv/
-.env/
+.env
 
 # NLTK downloaded data
 ntlk_data/
@@ -16,3 +16,6 @@ ntlk_data/
 
 # Logs
 *.logs
+UrbanSpace/
+__pycache__/
+*.pyc
