@@ -8,7 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate
 load_dotenv()
 
 # --- CONFIGURATION ---
-TARGET_PAIRS_PER_TOPIC = 50  # We generate 50 at a time per sub-topic
+TARGET_PAIRS_PER_TOPIC = 15  # We generate 50 at a time per sub-topic
 OUTPUT_DIR = "data/raw"
 
 # The Master List of Topics you requested
@@ -25,6 +25,18 @@ TOPIC_MAP = {
         "China's Tiangong Space Station",
         "Indian Space Research Organisation (Chandrayaan)",
         "The Hubble vs James Webb Telescope"
+    ],
+    "general.txt": [
+        "NASRDA (Nigeria's Space Agency): What do they actually do?",
+        "NigeriaSat-1, 2, and X: Satellites built for Nigerians",
+        "The Space Barons: Elon Musk vs. Jeff Bezos (The Billionaire Race)",
+        "Could a Nigerian become an astronaut? (Future Career Paths)",
+        "The Gross Truth: Toilet situations and hygiene in Zero-G",
+        "Space Myths: 'Juju' in space vs. Physics (Debunking superstitions)",
+        "Sci-Fi vs. Reality: Black Panther/Wakanda tech vs. Real Space Tech",
+        "Aliens: Are we alone or just ignoring the calls?",
+        "Space Junk: Why it matters to internet in Lagos (Starlink etc)",
+        "Rocket Lab & The Electron: Small rockets, big dreams"
     ],
     "blackholes.txt": [
         "Event Horizons and Spaghettification",
@@ -100,21 +112,32 @@ TOPIC_MAP = {
     ]
 }
 
-# --- THE SYSTEM PROMPT (Your "Tri-Level" Design) ---
+# --- ROBUST LOCALIZED SYSTEM PROMPT (Pan-Nigerian & Global Appeal) ---
 SYSTEM_PROMPT = """
-You are "UrbanSpace," a Senior Science Communicator in late 2025.
+You are "UrbanSpace," a world-class Senior Science Communicator and Astrophysicist in late 2025.
 Generate exactly {count} Question and Answer pairs about: {topic}.
 
-### DEMOGRAPHIC MIX (Strictly followed)
-1. **Tier 1 (Child/Curious):** 30% of questions. Fun, sensory, "What if?".
-2. **Tier 2 (Adult/General):** 40% of questions. Practical, historical, economic.
-3. **Tier 3 (Academic/Expert):** 30% of questions. Technical, data-heavy, citations (e.g., "Flight 11 data").
+### AUDIENCE PROFILE (Broad Appeal, Nigerian Centric)
+- **Primary Audience:** Nigerians (Students, Professionals, Families) and global space enthusiasts.
+- **Tone:** Intelligent, engaging, inspiring, and clear. Avoid overly casual slang that might alienate older users. Aim for a "Smart, Modern Nigerian Professional" tone (Think: A cool university lecturer).
+- **Language Style:** Standard Nigerian English (British/Commonwealth spelling). Clear, articulate, and professional.
+- **Localization Constraints:** - **NO Americanisms:** Use "pavement," "petrol," "football," "maths," "cinema."
+  - **Units:** STRICTLY METRIC (km, m, kg, °C).
+  - **Analogies:** Use relatable comparisons that almost any Nigerian would understand:
+    - Distance: "Roughly the distance from Lagos to Abuja."
+    - Size: "About the size of a standard football pitch."
+    - Weight: "Heavier than a 50kg bag of rice."
+
+### DEMOGRAPHIC MIX
+1. **Tier 1 (The Curious Beginner):** 40% of questions. Accessible to everyone (ages 12-80). Focus on wonder, danger, and sensory details. (e.g., "Can you hear explosions in space?").
+2. **Tier 2 (The Student/Career-Focused):** 40% of questions. Educational value. How things work, economic opportunities in space, and engineering.
+3. **Tier 3 (The Enthusiast/Expert):** 20% of questions. Deep dives, specific dates, orbital mechanics, and technical data.
 
 ### RULES
 - **Date Context:** Today is late 2025.
-- **Rich Text:** Answers must be 3-6 sentences. No one-word answers.
+- **Objectivity:** When discussing private companies or nations, acknowledge global contributions (including Nigeria's NASRDA) without bias.
+- **Rich Text:** Answers must be 3-6 sentences. Narrative style, not robotic.
 - **Format:** Strictly Q: [Question] \\n A: [Answer] \\n\\n (Double newline separator).
-- **No Markdown:** Do not use **bold** or # headings within the Q/A blocks.
 
 Begin generation now.
 """
@@ -169,8 +192,8 @@ def generate_data():
                 
                 # Sleep to respect Rate Limits (Groq Free Tier)
                 # 30 requests per minute = 1 request every 2 seconds.
-                # We sleep 5 to be safe and ensure high quality.
-                time.sleep(5)
+                # We sleep 25 to be safe and ensure high quality.
+                time.sleep(25)
                 
             except Exception as e:
                 print(f"FAILED: {e}")
