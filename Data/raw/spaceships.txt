@@ -1,0 +1,386 @@
+Q: What was the primary purpose of the Saturn V rocket?
+A: To launch American astronauts to the Moon for the Apollo program.
+
+Q: How many stages did the Saturn V have?
+A: Three expendable stages: S-IC, S-II, and S-IVB.
+
+Q: What type of engines powered the first stage of the Saturn V?
+A: Five F-1 engines, the most powerful single-chamber liquid-fueled rocket engines ever flown.
+
+Q: What fuel did the Saturn V's F-1 engines use?
+A: RP-1 (Rocket Propellant-1), a highly refined form of kerosene, and liquid oxygen (LOX) as the oxidizer.
+
+Q: What fuel did the upper stages of the Saturn V use?
+A: Liquid hydrogen (LH2) and liquid oxygen (LOX).
+
+Q: Who was the lead architect of the Saturn V rocket?
+A: Wernher von Braun.
+
+Q: How tall was the Saturn V rocket?
+A: Approximately 111 meters (363 feet) tall, taller than the Statue of Liberty.
+
+Q: What was the official name of the Space Shuttle program?
+A: The Space Transportation System (STS).
+
+Q: What were the three main components of the Space Shuttle stack?
+A: The Orbiter Vehicle (OV), two solid rocket boosters (SRBs), and the external tank (ET).
+
+Q: Which part of the Space Shuttle stack was not reusable?
+A: The external tank, which burned up in the atmosphere after separation.
+
+Q: What was the purpose of the solid rocket boosters (SRBs) on the Space Shuttle?
+A: To provide the majority of the thrust needed to lift the Shuttle off the launch pad for the first two minutes of flight.
+
+Q: How did the Space Shuttle Orbiter land?
+A: It landed unpowered as a glider on a long runway.
+
+Q: What was the function of the external tank?
+A: It supplied liquid hydrogen and liquid oxygen propellant to the Orbiter's three main engines.
+
+Q: What was the payload bay of the Space Shuttle used for?
+A: To carry satellites, space station modules, and scientific instruments into orbit.
+
+Q: Name the five space-flown Shuttle Orbiters.
+A: Columbia, Challenger, Discovery, Atlantis, and Endeavour.
+
+Q: What type of heat shield did the Space Shuttle use for reentry?
+A: A Thermal Protection System (TPS) composed of reinforced carbon-carbon panels and silica tiles.
+
+Q: What caused the Space Shuttle Challenger disaster?
+A: The failure of an O-ring seal in one of the solid rocket boosters, which allowed hot gas to escape and damage the external tank.
+
+Q: What caused the Space Shuttle Columbia disaster?
+A: A piece of insulating foam from the external tank broke off during launch and struck the orbiter's wing, creating a hole that allowed hot gases to enter during reentry.
+
+Q: What country developed and operates the Soyuz spacecraft and rocket?
+A: Russia (originally the Soviet Union).
+
+Q: What are the three modules of the Soyuz spacecraft?
+A: The Orbital Module, the Descent Module, and the Service Module.
+
+Q: Which Soyuz module is the only one to return to Earth?
+A: The Descent Module, which carries the crew.
+
+Q: What is the distinctive booster separation pattern of the Soyuz rocket called?
+A: The "Korolev Cross," where the four liquid-fueled strap-on boosters separate simultaneously.
+
+Q: For what purpose was the Soyuz spacecraft originally designed?
+A: For the Soviet lunar program.
+
+Q: What has been the primary role of the Soyuz since the Space Shuttle's retirement?
+A: It was the sole means of transporting crews to and from the International Space Station (ISS) for nearly a decade.
+
+Q: What company manufactures and launches the Falcon 9 rocket?
+A: SpaceX.
+
+Q: What is the most significant innovation of the Falcon 9 rocket?
+A: The reusability of its first stage booster, which can land vertically after launch.
+
+Q: What engines power the Falcon 9 rocket?
+A: SpaceX's Merlin engines.
+
+Q: How many Merlin engines are on the first stage of a Falcon 9?
+A: Nine.
+
+Q: What fuel does the Falcon 9's Merlin engines use?
+A: RP-1 (Rocket Propellant-1) and liquid oxygen (LOX).
+
+Q: How does the Falcon 9's first stage land?
+A: It uses a combination of grid fins for aerodynamic control and engine burns to perform a propulsive landing on a drone ship or landing pad.
+
+Q: What is a "header tank" on a SpaceX rocket?
+A: A smaller, secondary propellant tank located inside the main tank, used specifically for the landing burn to ensure a consistent propellant supply.
+
+Q: What is the fairing of a rocket?
+A: A nose cone that protects the payload from aerodynamic pressure and heating during atmospheric flight. SpaceX also reuses Falcon 9 fairings.
+
+Q: What is Starship?
+A: A fully reusable super heavy-lift launch vehicle being developed by SpaceX.
+
+Q: What are the two main components of the Starship system?
+A: The Super Heavy booster (first stage) and the Starship spacecraft (second stage).
+
+Q: What engines will power the Starship system?
+A: SpaceX's Raptor engines.
+
+Q: What propellant do the Raptor engines use?
+A: Cryogenic liquid methane and liquid oxygen, also known as methalox.
+
+Q: Why was methane chosen as the fuel for Starship?
+A: Because it can potentially be produced on Mars through in-situ resource utilization (ISRU).
+
+Q: How is Starship designed to land on Earth, the Moon, or Mars?
+A: Both the Super Heavy booster and the Starship spacecraft are designed to perform vertical propulsive landings.
+
+Q: What is the unique belly-flop maneuver used for Starship's reentry?
+A: A controlled aerodynamic descent where Starship falls horizontally to scrub off speed before flipping to a vertical orientation for landing.
+
+Q: What is the primary long-term goal for the Starship program?
+A: To enable the colonization of Mars.
+
+Q: What material is the Starship vehicle primarily constructed from?
+A: Stainless steel, chosen for its strength at both cryogenic and high reentry temperatures, as well as its low cost.
+
+Q: What was the goal of Project Mercury?
+A: To put the first American astronaut into Earth orbit.
+
+Q: How many astronauts could the Mercury capsule carry?
+A: One.
+
+Q: What was the primary objective of the Gemini program?
+A: To develop space travel techniques in support of the Apollo Moon missions, including rendezvous, docking, and spacewalks.
+
+Q: How many astronauts did the Gemini capsule accommodate?
+A: Two.
+
+Q: What were the two main components of the Apollo spacecraft?
+A: The Command/Service Module (CSM) and the Lunar Module (LM).
+
+Q: What was the role of the Apollo Command Module?
+A: It housed the crew during launch, transit to the Moon, and reentry to Earth.
+
+Q: What was the specific purpose of the Apollo Lunar Module?
+A: To land two astronauts on the Moon and return them to the orbiting Command Module.
+
+Q: What is the difference between Dragon 1 and Dragon 2?
+A: Dragon 1 was a reusable cargo spacecraft, while Dragon 2 is designed to carry crew (Crew Dragon) or cargo (Cargo Dragon) and features SuperDraco launch escape engines.
+
+Q: What is a key feature of the Dragon capsule's launch escape system?
+A: It is integrated into the side of the capsule using SuperDraco thrusters, allowing for escape at any point during ascent.
+
+Q: What is the purpose of the Orion spacecraft?
+A: It is NASA's next-generation crew capsule designed for deep space missions beyond low Earth orbit, including missions to the Moon.
+
+Q: What rocket is designed to launch the Orion spacecraft?
+A: NASA's Space Launch System (SLS).
+
+Q: What major component of the Orion spacecraft is provided by the European Space Agency (ESA)?
+A: The European Service Module (ESM), which provides propulsion, power, and life support.
+
+Q: What was the primary mission of the Voyager 1 and 2 probes?
+A: To study the outer planets of our solar system: Jupiter, Saturn, Uranus, and Neptune.
+
+Q: What is the "Golden Record" carried aboard the Voyager spacecraft?
+A: A phonograph record containing sounds and images selected to portray the diversity of life and culture on Earth, intended for any intelligent extraterrestrial life who may find them.
+
+Q: What region of space are the Voyager probes currently exploring?
+A: Interstellar space, having crossed the heliopause.
+
+Q: What was the Cassini-Huygens mission?
+A: A joint NASA/ESA/ASI mission to study the planet Saturn and its system, including its rings and moons.
+
+Q: What was the specific role of the Huygens probe?
+A: To descend through the atmosphere of Saturn's moon Titan and land on its surface.
+
+Q: What was the primary target of the New Horizons mission?
+A: The dwarf planet Pluto and its moons.
+
+Q: What object did New Horizons fly by after its Pluto encounter?
+A: Arrokoth, a Kuiper Belt object.
+
+Q: What is the Hubble Space Telescope?
+A: A space-based observatory orbiting Earth that has provided iconic images of the cosmos since 1990.
+
+Q: In what part of the electromagnetic spectrum does Hubble primarily observe?
+A: Visible, ultraviolet, and near-infrared light.
+
+Q: What is the James Webb Space Telescope (JWST)?
+A: A large space-based observatory designed to be the successor to the Hubble Space Telescope.
+
+Q: What part of the spectrum is the JWST optimized to observe in?
+A: The infrared spectrum, allowing it to see the earliest stars and galaxies.
+
+Q: Why must the JWST operate at extremely cold temperatures?
+A: To minimize infrared radiation from the telescope itself, which would interfere with observations. This is achieved with a large sunshield.
+
+Q: Where is the James Webb Space Telescope located?
+A: At the second Lagrange point (L2) of the Sun-Earth system.
+
+Q: What is the Shenzhou spacecraft?
+A: China's crewed spacecraft, heavily based on the Russian Soyuz design.
+
+Q: What rocket launches the Shenzhou spacecraft?
+A: The Long March 2F rocket.
+
+Q: What is the Ariane family of rockets?
+A: A series of European expendable launch vehicles operated by Arianespace.
+
+Q: Where are Ariane rockets typically launched from?
+A: The Guiana Space Centre in French Guiana, South America.
+
+Q: Why is a launch site near the equator advantageous?
+A: It provides a boost from the Earth's rotational speed, allowing rockets to carry heavier payloads or use less fuel to reach orbit.
+
+Q: What is the GSLV?
+A: The Geosynchronous Satellite Launch Vehicle, an expendable launch system operated by the Indian Space Research Organisation (ISRO).
+
+Q: What is a significant technological achievement of India's GSLV Mk III (LVM3)?
+A: Its indigenously developed cryogenic upper stage.
+
+Q: What was the Buran programme?
+A: A Soviet/Russian reusable spaceplane project that flew one uncrewed orbital mission.
+
+Q: How was the Buran orbiter launched?
+A: On the back of the expendable Energia super heavy-lift rocket.
+
+Q: How did the Buran orbiter differ from the US Space Shuttle in its main propulsion?
+A: Buran had no main engines of its own; all ascent propulsion was provided by the Energia rocket.
+
+Q: What is a space elevator?
+A: A hypothetical structure consisting of a cable anchored to the Earth's surface and extending into space, used to transport payloads to orbit without rockets.
+
+Q: What is a solar sail?
+A: A form of spacecraft propulsion that uses the radiation pressure exerted by sunlight on large mirrors to move through space.
+
+Q: What is a Bussard ramjet?
+A: A theoretical interstellar propulsion system that collects interstellar hydrogen with a massive magnetic funnel to use as fuel for a fusion reactor.
+
+Q: What is an Alcubierre drive?
+A: A speculative idea for a faster-than-light travel method that involves contracting spacetime in front of a spacecraft and expanding it behind.
+
+Q: What is nuclear thermal propulsion (NTP)?
+A: A type of rocket engine that uses a nuclear reactor to heat a liquid propellant (like hydrogen) to a high temperature, which is then expelled through a nozzle to create thrust.
+
+Q: How is NTP more efficient than chemical rockets?
+A: It has a much higher specific impulse, meaning it can produce more thrust for a given amount of propellant mass.
+
+Q: What is a Dyson sphere or swarm?
+A: A hypothetical megastructure that an advanced civilization might build to completely encompass a star and capture a large percentage of its power output.
+
+Q: What is a single-stage-to-orbit (SSTO) vehicle?
+A: A spaceplane or rocket that can reach orbit from the surface of a body without jettisoning any hardware like stages or boosters.
+
+Q: What is an O'Neill cylinder?
+A: A proposed space settlement design consisting of two counter-rotating cylinders that create artificial gravity on their inner surfaces through centrifugal force.
+
+Q: What is ion propulsion?
+A: A highly efficient form of electric propulsion where ions are accelerated by an electric field to create very low thrust over a long period.
+
+Q: What is in-situ resource utilization (ISRU)?
+A: The practice of collecting, processing, and using materials found or manufactured on other astronomical objects (like the Moon or Mars) to support missions.
+
+Q: What is a rotating wheel space station designed to do?
+A: Create artificial gravity for its inhabitants via centrifugal force, mitigating the negative health effects of long-term weightlessness.
+
+Q: What is orbital velocity?
+A: The speed a spacecraft must travel to stay in a stable orbit around a celestial body, where its forward momentum is balanced by the body's gravitational pull.
+
+Q: What is escape velocity?
+A: The minimum speed an object needs to completely break free from the gravitational influence of a celestial body without further propulsion.
+
+Q: What is specific impulse ($I_{sp}$)?
+A: A measure of the efficiency of a rocket engine. It represents how much thrust is produced per unit of propellant consumed over time.
+
+Q: What is the Tsiolkovsky rocket equation?
+A: A fundamental equation in rocketry that describes the change in velocity ($\Delta v$) of a vehicle based on its engine's specific impulse and its initial and final mass.
+
+Q: What is delta-v ($\Delta v$)?
+A: A measure of the impulse that is needed to perform a maneuver such as changing orbit; it represents a "budget" of how much a spacecraft can change its trajectory.
+
+Q: What is a geostationary orbit (GEO)?
+A: A circular orbit 35,786 kilometers above the Earth's equator where a satellite's orbital period matches Earth's rotation, making it appear stationary from the ground.
+
+Q: What is a Low Earth Orbit (LEO)?
+A: An orbit around Earth with an altitude between 160 and 2,000 kilometers. Most satellites and the ISS are in LEO.
+
+Q: What is a gravity assist or slingshot maneuver?
+A: A technique where a spacecraft flies close to a planet to use its gravity to alter its speed and trajectory, saving propellant.
+
+Q: What is staging in a rocket?
+A: The process of jettisoning parts of a rocket (stages) as they run out of fuel to reduce the total mass that needs to be accelerated.
+
+Q: What is an ablative heat shield?
+A: A type of heat shield used for reentry that works by charring and vaporizing, carrying heat away from the spacecraft. Early capsules like Mercury and Apollo used this.
+
+Q: What is orbital decay?
+A: The gradual decrease in the altitude of a satellite's orbit caused by atmospheric drag, eventually leading to reentry if not corrected.
+
+Q: What is a Hohmann transfer orbit?
+A: An elliptical orbit used to transfer a spacecraft between two different circular orbits in the most fuel-efficient way possible.
+
+Q: What is the difference between payload and propellant?
+A: The payload is the cargo a rocket carries (e.g., satellite, crew capsule). The propellant is the fuel and oxidizer burned to produce thrust.
+
+Q: What is a launch window?
+A: The specific period of time during which a rocket must be launched to reach its intended target or orbit correctly.
+
+Q: What is rocket engine gimbaling?
+A: The ability to pivot a rocket engine to change the direction of its thrust, used for steering the vehicle.
+
+Q: What are reaction control system (RCS) thrusters?
+A: Small rocket engines used on spacecraft for attitude control (orientation) and fine-tuned maneuvering in space.
+
+Q: What is a polar orbit?
+A: An orbit in which a satellite passes above or nearly above both poles of the body being orbited. It's useful for Earth observation satellites.
+
+Q: What is the Karman line?
+A: The commonly accepted boundary between Earth's atmosphere and outer space, located at an altitude of 100 kilometers (62 miles) above sea level.
+
+Q: What is the difference between a monopropellant and a bipropellant?
+A: A monopropellant is a chemical that can react on its own to produce thrust (e.g., hydrazine). A bipropellant system uses two separate chemicals, a fuel and an oxidizer, that react when mixed.
+
+Q: What is cryogenic propellant?
+A: A propellant that is a liquified gas kept at a very low temperature, such as liquid hydrogen (LH2) or liquid oxygen (LOX).
+
+Q: What is meant by "max Q"?
+A: The point during a rocket's atmospheric flight when it experiences maximum dynamic pressure, which is the combination of its velocity and the surrounding air density.
+
+Q: What is the function of a gyroscope in a spacecraft's guidance system?
+A: It helps to measure and maintain the spacecraft's orientation (attitude) without relying on external references.
+
+Q: Why are spacecraft structures often made from materials like aluminum alloys or carbon composites?
+A: These materials have a high strength-to-weight ratio, which is critical for minimizing launch mass.
+
+Q: What is the purpose of multi-layer insulation (MLI) on a spacecraft?
+A: To provide thermal control by reflecting solar radiation and minimizing heat loss in the cold of space.
+
+Q: How do spacecraft typically generate electrical power?
+A: Primarily through solar panels that convert sunlight into electricity. Deep space probes may use Radioisotope Thermoelectric Generators (RTGs).
+
+Q: What is a Radioisotope Thermoelectric Generator (RTG)?
+A: A power source that uses the heat generated from the radioactive decay of materials like plutonium-238 to produce electricity.
+
+Q: What is avionics?
+A: The collection of electronic systems used on a spacecraft, including communications, navigation, and control systems.
+
+Q: What is telemetry?
+A: The automated process of collecting data from instruments on a spacecraft and transmitting it back to Earth.
+
+Q: What is the primary challenge of thermal management in space?
+A: Spacecraft must be designed to handle extreme temperature swings, from direct sunlight to deep space shadow, without a medium like air for convection.
+
+Q: What is a solid rocket motor?
+A: A motor that uses a pre-mixed solid block of fuel and oxidizer. It is simpler than a liquid engine but generally cannot be throttled or shut down once ignited.
+
+Q: What is a liquid rocket engine?
+A: An engine that uses liquid propellants (a fuel and an oxidizer) pumped from tanks into a combustion chamber. It can be throttled, stopped, and restarted.
+
+Q: What is the purpose of a reaction wheel?
+A: An electrically powered wheel that is spun up or down to change a spacecraft's angular momentum, allowing it to change its orientation without using propellant.
+
+Q: What is rendezvous and docking?
+A: The process where two spacecraft meet in the same orbit (rendezvous) and then physically connect (docking).
+
+Q: What is the purpose of a launch escape system?
+A: To rapidly pull a crew capsule away from its booster rocket in the event of a catastrophic failure during launch.
+
+Q: What is ullage in a propellant tank?
+A: The empty space in a propellant tank above the liquid propellant.
+
+Q: What are ullage motors?
+A: Small rockets fired to push a spacecraft forward slightly, settling liquid propellants at the bottom of their tanks so they can be drawn into the engine pumps in zero-g.
+
+Q: What is propellant slosh?
+A: The movement of liquid propellant inside its tank, which can affect a rocket's stability. Baffles are often used inside tanks to reduce it.
+
+Q: What is a star tracker?
+A: An optical device on a spacecraft that measures the positions of stars to determine the spacecraft's attitude (orientation).
+
+Q: What is a Lagrange point?
+A: A position in space where the gravitational forces of two large bodies (like the Sun and Earth) produce enhanced regions of attraction and repulsion, allowing a spacecraft to maintain a stable position with minimal fuel.
+
+Q: What is the sound suppression system used for at a launch pad?
+A: A system that releases massive amounts of water onto the launch pad to absorb the intense acoustic energy from the rocket engines, which could otherwise damage the rocket and its payload.
+
+Q: What is redundancy in spacecraft design?
+A: The inclusion of duplicate or backup systems (e.g., computers, thrusters) to ensure a mission can continue even if a primary component fails.
