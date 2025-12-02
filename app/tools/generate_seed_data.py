@@ -151,7 +151,7 @@ def generate_data():
 
     llm = ChatGroq(
         temperature=0.7,  # Slightly creative to avoid repetition
-        model_name="llama3-70b-8192", 
+        model="llama-3.3-70b-versatile",
         api_key=api_key
     )
 
@@ -165,7 +165,7 @@ def generate_data():
     # Ensure output directory exists
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    print(f"--- STARTING SYNTHETIC DATA GENERATION ---")
+    print("--- STARTING SYNTHETIC DATA GENERATION ---")
     print(f"Target: ~{TARGET_PAIRS_PER_TOPIC * 10} pairs per file.")
 
     for filename, subtopics in TOPIC_MAP.items():
