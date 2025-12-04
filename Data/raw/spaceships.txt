@@ -1,5 +1,3 @@
-
-
 Q: What is Newton's Third Law and how does it apply to rocket propulsion?
 A: Newton's Third Law states that every action has an equal and opposite reaction. In the context of rocket propulsion, this means that the hot gases expelled out of the back of a rocket produce a forward thrust. As the rocket ejects these gases, it experiences an equal force in the opposite direction, propelling it forward. This fundamental principle is what allows rockets to escape the Earth's atmosphere and travel into space. The law is a crucial concept in understanding how rockets work, from the smallest satellites to the largest space exploration vehicles.
 

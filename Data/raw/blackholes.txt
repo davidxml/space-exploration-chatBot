@@ -1,4 +1,3 @@
-
 Q: What is an event horizon, and how does it relate to black holes in space?
 A: An event horizon is the boundary beyond which nothing, including light, can escape the gravitational pull of a black hole. It's essentially the point of no return, where the gravity is so strong that any object or radiation that crosses it will be trapped by the black hole. Imagine being in a car driving on the pavement, but instead of stopping at a red light, you're being pulled inexorably towards a cosmic abyss. The event horizon is not a physical boundary but rather a mathematical concept that marks the beginning of the black hole's dominion. As we continue to explore the universe, understanding event horizons helps us grasp the awe-inspiring power of black holes.
 

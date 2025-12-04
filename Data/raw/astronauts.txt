@@ -1,5 +1,3 @@
-
-
 Q: What is the primary purpose of a space suit during an EVA, and how does it protect astronauts?
 A: The primary purpose of a space suit, also known as an Extravehicular Activity (EVA) suit, is to provide a safe and reliable environment for astronauts to work outside their spacecraft or space station. The suit protects astronauts from the harsh conditions of space, including extreme temperatures, lack of oxygen, and radiation. It maintains a comfortable internal temperature, around 20°C, and humidity level, while also supplying oxygen for the astronaut to breathe. The suit is pressurized to about 0.3 times the atmospheric pressure on Earth, which is roughly the pressure at an altitude of 3,000 metres. This pressurization helps to prevent the astronaut's body fluids from boiling due to the low external pressure.
 
