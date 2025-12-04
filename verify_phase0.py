@@ -110,7 +110,7 @@ def verify_data():
     print(f"| **TARGET REQUIREMENT**:     {TARGET * len(files):,} Questions")
     print(f"| **FILES FULLY COMPLETE**:   {files_fully_complete} / {len(files)}")
     print(f"| **EXECUTION TIME**:         {(end_time - start_time):.2f} seconds")
-    print(f"| **FINAL STATUS**:           {overall_status_text}")
+    print(f"| **FINAL STATUS**:           {(total_q/(TARGET * len(files)) * 100)} % COMPLETED! {overall_status_text}")
     print("=" * 50)
 
 if __name__ == "__main__":
