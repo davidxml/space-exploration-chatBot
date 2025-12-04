@@ -11,7 +11,7 @@ load_dotenv()
 TARGET_TOTAL_PER_FILE = 500    # THE GOAL
 BATCH_SIZE = 15                # Drip-feed size
 OUTPUT_DIR = "data/raw"
-SLEEP_TIME = 30                # Safety cool-down
+SLEEP_TIME = 25                # Safety cool-down
 
 # --- TOPIC MAP (Your full list) ---
 TOPIC_MAP = {
