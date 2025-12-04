@@ -1,5 +1,6 @@
 import os
 import time
+import random  # Import random for shuffling
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
@@ -170,15 +171,20 @@ def process_file_list(chain, file_list, phase_name):
         
         target_per_subtopic = TARGET_TOTAL_PER_FILE // len(subtopics)
         
-        for subtopic in subtopics:
+        # --- THE FIX: Shuffle the subtopics to ensure variety on restart ---
+        # We create a copy so we don't mess up the original map order
+        current_subtopics = list(subtopics)
+        random.shuffle(current_subtopics)
+        
+        for subtopic in current_subtopics:
             # Re-check count frequently to avoid over-generating
             if count_existing_questions(filepath) >= TARGET_TOTAL_PER_FILE:
                 print("  -> File Target Reached. Moving to next file.")
                 break
 
             subtopic_generated = 0
+            
             # Simple loop for this subtopic batch
-            # We try to generate at least one batch per subtopic if under limit
             while subtopic_generated < target_per_subtopic:
                 
                 if count_existing_questions(filepath) >= TARGET_TOTAL_PER_FILE:
@@ -252,8 +258,7 @@ def generate_data():
         else:
             print(f"  [COMPLETE] {filename} is ready ({count}).")
 
-    # KEY FIX: Sort the partial list by 'count' (Ascending)
-    # Files with FEWER questions (like life_outside.txt) will move to the front.
+    # Sort the partial list by 'count' (Ascending) to prioritize starved files
     priority_partial.sort(key=lambda x: x["count"])
 
     # Convert back to simple tuple format for the processor
@@ -269,4 +274,4 @@ def generate_data():
     print("\n--- GENERATION COMPLETE ---")
 
 if __name__ == "__main__":
-    generate_data()
+    generate_data() 
