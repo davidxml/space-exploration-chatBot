@@ -71,14 +71,14 @@ def verify_data():
             percentage = int((count / TARGET) * 100)
             
             if count >= TARGET:
-                status = "✅ READY"
+                status = f"✅ {percentage}% READY"
                 files_fully_complete += 1
             elif count == 0:
                 status = "❌ EMPTY"
                 all_pass = False
             else:
                 # Using the Unicode warning triangle for clarity
-                status = f"⚠️ LOW ({percentage}%)"
+                status = f"⚠️  Moderate ({percentage}%)"
                 # We can proceed with LOW status, but we must update all_pass status
             
             # Print row for the main table
