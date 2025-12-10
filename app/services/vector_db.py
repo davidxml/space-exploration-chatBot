@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import logging
 from typing import List, Optional
@@ -9,12 +10,13 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
-# Local Modules
-from app.services.ingestion import IngestionEngine
-
 # --- PATH FIX: Allow running this file directly ---
 # This tells Python: "The root of the project is two folders up (../../)"
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+
+# Local Modules
+from app.services.ingestion import IngestionEngine
+
 
 # --- CONFIGURATION ---
 DB_PATH = "data/vector_store"
