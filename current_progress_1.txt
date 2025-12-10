@@ -1,1385 +1,0 @@
-﻿
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\.gitignore
-# ---------------------
-# Python cache files
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Virtual environments
-venv/
-.env
-
-# NLTK downloaded data
-ntlk_data/
-
-# VSCODE SETTINGS
-.vscode/
-
-# Logs
-*.logs
-UrbanSpace/
-__pycache__/
-*.pyc
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\map.py
-# ---------------------
-import os
-
-def print_clean_tree(startpath):
-    # I added 'UrbanSpace' here to ensure it is strictly ignored
-    # Also added standard venv subfolders just in case
-    IGNORE = {'UrbanSpace', 'venv', '.git', '__pycache__', '.idea', '.vscode', 'Lib', 'Scripts'}
-
-    print(f"ðŸ“‚ Project Structure for: {os.path.abspath(startpath)}\n")
-
-    for root, dirs, files in os.walk(startpath):
-        # This line physically prevents Python from entering the ignored folders
-        dirs[:] = [d for d in dirs if d not in IGNORE]
-        
-        level = root.replace(startpath, '').count(os.sep)
-        indent = 'â”‚   ' * level
-        print(f'{indent}â”œâ”€â”€ {os.path.basename(root)}/')
-        
-        subindent = 'â”‚   ' * (level + 1)
-        for f in files:
-            # Skip python compiled files
-            if not f.endswith('.pyc'): 
-                print(f'{subindent}â”œâ”€â”€ {f}')
-
-if __name__ == "__main__":
-    print_clean_tree('.')
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\README.md
-# ---------------------
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\requirements.txt
-# ---------------------
-fastapi
-uvicorn[standard]
-langchain
-langchain-groq
-langchain-community
-python-dotenv
-requests
-pydantic
-faiss-cpu
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\verify_phase0.py
-# ---------------------
-import os
-import time
-from datetime import datetime
-
-# Define the target
-TARGET = 500
-DATA_DIR = "data/raw"
-
-def format_time(timestamp):
-    """Formats a timestamp for professional logging."""
-    return datetime.fromtimestamp(timestamp).strftime("%H:%M:%S")
-
-def count_existing_questions(filepath):
-    """Scans the file and counts how many 'Q:' lines exist."""
-    if not os.path.exists(filepath):
-        return 0
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
-            return content.count("Q:")
-    except:
-        return 0
-
-def verify_data():
-    
-    # 1. INITIALIZE AUDIT
-    start_time = time.time()
-    
-    # Check if DATA_DIR exists
-    if not os.path.exists(DATA_DIR):
-        print(f"\nâŒ CRITICAL ERROR: Data directory '{DATA_DIR}' not found.")
-        print("Please ensure the folder exists and is populated.")
-        return
-
-    print(f"\n=======================================================")
-    print(f"|  PHASE 0 INTEGRITY AUDIT (Execution Log)           |")
-    print(f"=======================================================")
-    print(f"| TIME STARTED: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | TARGET: {TARGET} Q/File |")
-    print(f"=======================================================\n")
-    
-    files = [f for f in os.listdir(DATA_DIR) if f.endswith(".txt")]
-    files.sort()
-    
-    # 2. DATA PROCESSING LOOP
-    total_q = 0
-    all_pass = True
-    processed_count = 0
-    files_fully_complete = 0
-
-    print(f"{'FILENAME':<25} | {'COUNT':<10} | {'STATUS'}")
-    print("-" * 50)
-
-    for filename in files:
-        filepath = os.path.join(DATA_DIR, filename)
-        processed_count += 1
-        
-        # Get file size safely
-        try:
-            file_size_kb = os.path.getsize(filepath) / 1024
-        except:
-            file_size_kb = 0.0
-
-        try:
-            with open(filepath, "r", encoding="utf-8") as f:
-                content = f.read()
-            
-            # Count "Q:" occurrences (The metric for data points)
-            count = content.count("Q:")
-            total_q += count
-            
-            percentage = int((count / TARGET) * 100)
-            
-            if count >= TARGET:
-                status = f"âœ… {percentage}% READY"
-                files_fully_complete += 1
-            elif count == 0:
-                status = "âŒ EMPTY"
-                all_pass = False
-            else:
-                # Using the Unicode warning triangle for clarity
-                status = f"âš ï¸  Moderate ({percentage}%)"
-                # We can proceed with LOW status, but we must update all_pass status
-            
-            # Print row for the main table
-            print(f"{filename:<25} | {count:<10} | {status} (Size: {file_size_kb:.1f} KB)")
-            
-        except Exception as e:
-            print(f"{filename:<25} | âŒ ERROR    | Failed to read file: {str(e)}")
-            all_pass = False
-            
-    end_time = time.time()
-    
-    # 3. SUMMARY CARD GENERATION
-    
-    # Override all_pass ONLY IF everything is ready (since you want to proceed regardless)
-    # We set a custom status based on the strict check:
-    if files_fully_complete == len(files):
-        overall_status_text = "SUCCESS: ALL TARGETS MET"
-        status_symbol = "ðŸŸ¢"
-        all_pass_final = True
-    else:
-        overall_status_text = "PARTIAL SUCCESS: SYSTEM READY TO PROCEED"
-        status_symbol = "ðŸŸ¡"
-        all_pass_final = False
-
-    print("\n" + "=" * 50)
-    print(f"| {status_symbol} AUDIT SUMMARY CARD (PHASE 0 CONCLUSION) {status_symbol} |")
-    print("=" * 50)
-    print(f"| **TOTAL KNOWLEDGE CHUNKS**: {total_q:,} Questions")
-    print(f"| **TARGET REQUIREMENT**:     {TARGET * len(files):,} Questions")
-    print(f"| **FILES FULLY COMPLETE**:   {files_fully_complete} / {len(files)}")
-    print(f"| **EXECUTION TIME**:         {(end_time - start_time):.2f} seconds")
-    print(f"| **FINAL STATUS**:           {(total_q/(TARGET * len(files)) * 100)} % COMPLETED! {overall_status_text}")
-    print("=" * 50)
-
-if __name__ == "__main__":
-    verify_data()
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\.vscode\launch.json
-# ---------------------
-
-{
-    "version": "0.2.0",
-    "configurations": [
-
-        {
-            "name": "Python: Current File (Project Root)",
-            "type": "debugpy",
-            "request": "launch",
-            "program":"${file}",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/Backend"
-        },
-
-        {
-            "name": "Python: Run test_chatbot",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/Tests/test_chatbot.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "name": "Python: Run app.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/Backend/app.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "name": "Python: Run [Skeleton]",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/PATH/TO FILE",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}"
-        },
-    ]
-}
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\app\main.py
-# ---------------------
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\app\services\ingestion.py
-# ---------------------
-import os
-from typing import List, Dict
-
-class IngestionEngine:
-    """
-    Handles the loading and parsing of raw text data from the file system.
-    Converts unstructured text files into structured Document objects for vector storage.
-    """
-
-    def __init__(self, raw_data_path: str = "data/raw"):
-        """
-        Initializes the IngestionEngine.
-
-        Args:
-            raw_data_path (str): The relative path to the directory containing .txt files.
-        """
-        self.raw_data_path = raw_data_path
-
-    def load_and_process_files(self) -> List[Dict]:
-        """
-        Iterates through the raw data directory, reads all .txt files, and processes
-        them into a list of structured dictionaries.
-
-        Returns:
-            List[Dict]: A list of document dictionaries containing 'text' and 'metadata'.
-        """
-        documents = []
-        
-        # Verify directory existence before processing
-        if not os.path.exists(self.raw_data_path):
-            print(f"Warning: Directory {self.raw_data_path} not found.")
-            return []
-
-        # Iterate through files in the specified directory
-        for filename in os.listdir(self.raw_data_path):
-            if filename.endswith(".txt"):
-                file_path = os.path.join(self.raw_data_path, filename)
-                print(f"Processing: {filename}...")
-                
-                # Parse the individual file
-                new_docs = self._parse_qa_file(file_path, filename)
-                documents.extend(new_docs)
-                
-        print(f"Total Knowledge Chunks Loaded: {len(documents)}")
-        return documents
-
-    def _parse_qa_file(self, file_path: str, source_name: str) -> List[Dict]:
-        """
-        Parses a file containing Q&A blocks separated by double newlines.
-        
-        Structure expected:
-        Q: [Question]
-        A: [Answer]
-        
-        Args:
-            file_path (str): Full path to the file.
-            source_name (str): Name of the file (used for metadata).
-
-        Returns:
-            List[Dict]: Extracted documents.
-        """
-        clean_docs = []
-        
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-                
-            # Split content by double newlines to isolate Q&A pairs
-            blocks = content.split('\n\n')
-            
-            for block in blocks:
-                lines = block.strip().splitlines()
-                if not lines:
-                    continue
-                
-                # Flatten lines into a single string for storage
-                text_content = " ".join(lines)
-                
-                # Filter for valid data blocks containing Question identifiers
-                if "Q:" in text_content or "A:" in text_content:
-                    doc = {
-                        "text": text_content,
-                        "metadata": {
-                            "source": source_name,
-                            "topic": source_name.replace(".txt", "").capitalize()
-                        }
-                    }
-                    clean_docs.append(doc)
-                    
-        except Exception as e:
-            print(f"Error parsing {source_name}: {e}")
-            
-        return clean_docs
-
-# --- Execution Entry Point (For testing module in isolation) ---
-if __name__ == "__main__":
-    engine = IngestionEngine()
-    # Trigger the load process and print the first result for verification
-    data = engine.load_and_process_files()
-    if data:
-        print("\n--- Sample Chunk ---")
-        print(data[0])
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\app\services\llm_engine.py
-# ---------------------
-import os
-from langchain_groq import ChatGroq
-
-class SpaceBrain:
-    def __init__(self):
-        self.api_key = os.getenv("GROQ_API_KEY")
-        if not self.api_key:
-            raise ValueError("GROQ_API_KEY is missing from .env")
-            
-        # Using the new, smarter Llama 3.3 model
-        self.llm = ChatGroq(
-            temperature=0.3, 
-            model="llama-3.3-70b-versatile", 
-            api_key=self.api_key
-        )
-
-    def chat(self, user_query: str):
-        """
-        Simple chat interface for Phase 0.
-        Later, we will upgrade this method to use RAG (Vector DB).
-        """
-        response = self.llm.invoke(user_query)
-        return response.content
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\app\services\vector_db.py
-# ---------------------
-import os
-from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from app.services.ingestion import IngestionEngine
-
-class VectorDBService:
-    """
-    Manages the long-term memory of the AI.
-    Converts text -> Vectors -> FAISS Database.
-    """
-    
-    def __init__(self, db_path="data/vector_store"):
-        self.db_path = db_path
-        # We use 'all-MiniLM-L6-v2'. It is fast, free, and runs on your laptop CPU.
-        # It creates a 384-dimensional vector for every sentence.
-        print("--- Loading Embedding Model (all-MiniLM-L6-v2) ---")
-        self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-
-    def build_knowledge_base(self):
-        """
-        Runs the Ingestion Engine to read .txt files,
-        chunks them, and builds a fresh FAISS index.
-        """
-        print("\n--- STARTING MEMORY BUILD ---")
-        
-        # 1. Ingest Data
-        engine = IngestionEngine()
-        raw_docs = engine.load_and_process_files()
-        
-        if not raw_docs:
-            print("CRITICAL: No data found to ingest! Check data/raw folder.")
-            return
-
-        # 2. Chunking
-        # We use 700 characters per chunk with 70 overlap.
-        # This ensures the AI gets enough context (about 3-5 sentences) per search result.
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=700,
-            chunk_overlap=70
-        )
-        
-        docs = text_splitter.create_documents(
-            [d['text'] for d in raw_docs], 
-            metadatas=[d['metadata'] for d in raw_docs]
-        )
-        print(f"  -> Split {len(raw_docs)} raw blocks into {len(docs)} searchable vectors.")
-
-        # 3. Create Vector Store
-        print("  -> Vectorizing data... (This uses your CPU, please wait...)")
-        db = FAISS.from_documents(docs, self.embeddings)
-
-        # 4. Save to Disk
-        # This creates the 'data/vector_store' folder
-        db.save_local(self.db_path)
-        print(f"SUCCESS: Knowledge Base built and saved to {self.db_path}")
-
-    def load_knowledge_base(self):
-        """
-        Loads the existing FAISS index from disk.
-        """
-        if not os.path.exists(self.db_path):
-            raise ValueError(f"Vector DB not found at {self.db_path}. Run build_knowledge_base() first.")
-            
-        return FAISS.load_local(
-            self.db_path, 
-            self.embeddings, 
-            allow_dangerous_deserialization=True
-        )
-
-if __name__ == "__main__":
-    # When run directly, it rebuilds the database
-    vdb = VectorDBService()
-    vdb.build_knowledge_base()
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\app\services\__pycache__\vector_db.cpython-313.pyc
-# ---------------------
-ó
-
-    =¬4iÝ
-  ã                   óŒ   • S SK r S SKJr  S SKJr  S SKJr  S SKJr   " S S5      r	\
-S:X  a  \	" 5       r\R                  5         gg)	é    N)ÚFAISS)ÚHuggingFaceEmbeddings)ÚRecursiveCharacterTextSplitter)ÚIngestionEnginec                   ó.   • \ rS rSrSrSS jrS rS rSrg)	ÚVectorDBServiceé   zU
-Manages the long-term memory of the AI.
-Converts text -> Vectors -> FAISS Database.
-c                 óB   • Xl         [        S5        [        SS9U l        g )Nz2--- Loading Embedding Model (all-MiniLM-L6-v2) ---zall-MiniLM-L6-v2)Ú
-model_name)Údb_pathÚprintr   Ú
-embeddings)Úselfr   s     ÚEC:\Users\ADEWUNMI\Space Exploration ChatBot\app\services\vector_db.pyÚ__init__ÚVectorDBService.__init__
-   s   € ØŒô 	ÐBÔCÜ/Ð;MÑNˆó    c                 ó  • [        S5        [        5       nUR                  5       nU(       d  [        S5        g[        SSS9nUR	                  U Vs/ s H  oDS   PM	     snU Vs/ s H  oDS   PM	     snS	9n[        S
-[        U5       S[        U5       S35        [        S
-5        [        R                  " XPR                  5      nUR                  U R                  5        [        SU R                   35        gs  snf s  snf )z\
-Runs the Ingestion Engine to read .txt files,
-chunks them, and builds a fresh FAISS index.
-z
---- STARTING MEMORY BUILD ---z9CRITICAL: No data found to ingest! Check data/raw folder.Ni¼  éF   )Ú
-chunk_sizeÚ
-chunk_overlapÚtextÚmetadata)Ú	metadatasz  -> Split z raw blocks into z searchable vectors.z=  -> Vectorizing data... (This uses your CPU, please wait...)z+SUCCESS: Knowledge Base built and saved to )r
-   r   Úload_and_process_filesr   Úcreate_documentsÚlenr   Úfrom_documentsr   Ú
-save_localr   )r   ÚengineÚraw_docsÚ
-text_splitterÚdÚdocsÚdbs          r   Úbuild_knowledge_baseÚ$VectorDBService.build_knowledge_base   sõ   € ô
- 	Ð/Ô0ô !Ó"ˆØ×0Ñ0Ó2ˆæÜÐMÔNØô
- 7ØØñ
-ˆ
-ð
- ×-Ñ-Ù (Ó)¢˜1ˆvŒY¡Ñ)Ù.6Ó7ªh¨˜”}©hÑ7ð .ð 
-ˆô 	œC ›M˜?Ð*;¼CÀ»I¸;ÐFZÐ[Ô\ô 	ÐMÔNÜ
-×
-!Ò
-! $¯©Ó
-8ˆð 	
-‰
-d—l‘lÔ#Ü
-Ð;¸D¿L¹L¸>ÐJÕKùò 
-*ùÚ7s   ÁC<Á&D
-c                 óä   • [         R                  R                  U R                  5      (       d  [	        SU R                   S35      e[
-        R                  " U R                  U R                  SS9$ )z+
-Loads the existing FAISS index from disk.
-zVector DB not found at z#. Run build_knowledge_base() first.T)Úallow_dangerous_deserialization)ÚosÚpathÚexistsr   Ú
-ValueErrorr   Ú
-load_localr   )r   s    r   Úload_knowledge_baseÚ#VectorDBService.load_knowledge_base:   sY   € ô w‰w~‰~˜dŸl™l×+Ñ+ÜÐ6°t·|±|°nÐDgÐhÓiÐiä×ÒØL‰LØO‰OØ,0ñ
-ð 	
-r   )r   r   N)zdata/vector_store)	Ú__name__Ú
-__module__Ú__qualname__Ú__firstlineno__Ú__doc__r   r&   r/   Ú__static_attributes__© r   r   r   r      s   † ñô
-Oò$LõL
-r   r   Ú__main__)
-r*   Ú langchain_community.vectorstoresr   Úlangchain_community.embeddingsr   Úlangchain.text_splitterr   Úapp.services.ingestionr   r   r1   Úvdbr&   r7   r   r   Ú<module>r>      sB   ðÛ 	Ý 2Ý @Ý BÝ 2÷>
-ñ >
-ð@ ˆzÓá
-Ó
-€CØ×ÑÕð r   
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\app\tools\generate_seed_data.py
-# ---------------------
-import os
-import time
-import random  # Import random for shuffling
-from dotenv import load_dotenv
-from langchain_groq import ChatGroq
-from langchain_core.prompts import ChatPromptTemplate
-
-# Load environment variables (API Keys)
-load_dotenv()
-
-# --- CONFIGURATION ---
-TARGET_TOTAL_PER_FILE = 500    # THE GOAL
-BATCH_SIZE = 15                # Drip-feed size
-OUTPUT_DIR = "data/raw"
-SLEEP_TIME = 25                # Safety cool-down
-
-# --- TOPIC MAP (Your full list) ---
-TOPIC_MAP = {
-    "general.txt": [
-        "NASRDA (Nigeria's Space Agency): What do they actually do?",
-        "NigeriaSat-1, 2, and X: Satellites built for Nigerians",
-        "The Space Barons: Elon Musk vs. Jeff Bezos (The Billionaire Race)",
-        "Could a Nigerian become an astronaut? (Future Career Paths)",
-        "The Gross Truth: Toilet situations and hygiene in Zero-G",
-        "Space Myths: 'Juju' in space vs. Physics (Debunking superstitions)",
-        "Sci-Fi vs. Reality: Black Panther/Wakanda tech vs. Real Space Tech",
-        "Aliens: Are we alone or just ignoring the calls?",
-        "Space Junk: Why it matters to internet in Lagos (Starlink etc)",
-        "Rocket Lab & The Electron: Small rockets, big dreams"
-    ],
-    "missions.txt": [
-        "The Artemis Program & Lunar Gateway (2025-2026)",
-        "SpaceX Starship Development & Flight 11",
-        "Voyager 1 & 2 Interstellar Status",
-        "Mars Sample Return Mission Logistics",
-        "History of the Apollo Program",
-        "The International Space Station (End of Life Plans)",
-        "Private Space Stations (Orbital Reef, Axiom)",
-        "China's Tiangong Space Station",
-        "Indian Space Research Organisation (Chandrayaan)",
-        "The Hubble vs James Webb Telescope"
-    ],
-    "blackholes.txt": [
-        "Event Horizons and Spaghettification",
-        "Supermassive Black Holes (Sgr A* vs M87*)",
-        "Hawking Radiation & Evaporation",
-        "Time Dilation near Black Holes",
-        "Gravitational Waves & LIGO",
-        "Primordial Black Holes",
-        "Quasars and Active Galactic Nuclei",
-        "The Information Paradox",
-        "Wormholes (Einstein-Rosen Bridges)",
-        "Neutron Stars vs Black Holes"
-    ],
-    "meteors.txt": [
-        "The difference between Meteor, Meteoroid, Meteorite",
-        "Famous Impact Craters (Chicxulub, Barringer)",
-        "The Chelyabinsk Event (2013)",
-        "Planetary Defense (DART Mission)",
-        "Comet Tails and Outgassing",
-        "The Oort Cloud vs Kuiper Belt",
-        "Meteor Showers (Perseids, Geminids)",
-        "Harvesting Asteroids for Mining",
-        "Tunguska Event",
-        "Identifying Meteorites (Fusion Crusts)"
-    ],
-    "astronauts.txt": [
-        "Effects of Microgravity on the Human Body",
-        "Psychology of Long-Duration Spaceflight",
-        "Space Suits (EVA) Mechanics",
-        "Famous Astronauts (Armstrong, Gagarin, Koch)",
-        "Training for Space (The Neutral Buoyancy Lab)",
-        "Food and Hygiene in Space",
-        "Radiation Protection for Mars Crews",
-        "The 'Overview Effect'",
-        "Women in Space History",
-        "Commercial Astronauts & Space Tourism"
-    ],
-    "planets.txt": [
-        "The Atmosphere of Venus (Acid Rain)",
-        "Geology of Mars (Olympus Mons, Valles Marineris)",
-        "The Great Red Spot of Jupiter",
-        "Saturn's Ring System Physics",
-        "Uranus and Neptune (The Ice Giants)",
-        "Mercury's Extreme Temperatures",
-        "Pluto and Dwarf Planets",
-        "Exoplanets (Hot Jupiters, Super-Earths)",
-        "Habitable Zones (Goldilocks Zone)",
-        "Formation of the Solar System"
-    ],
-    "spaceships.txt": [
-        "Rocket Propulsion Physics (Newton's Third Law)",
-        "Ion Thrusters vs Chemical Rockets",
-        "Nuclear Thermal Propulsion (Future tech)",
-        "The Space Shuttle (Engineering & Legacy)",
-        "Soyuz Spacecraft Reliability",
-        "SpaceX Falcon 9 Reusability",
-        "Solar Sails",
-        "Space Elevators (Theoretical)",
-        "Generation Ships",
-        "Warp Drives (Alcubierre Drive Theory)"
-    ],
-    "life_outside.txt": [
-        "Europa's Subsurface Ocean",
-        "Enceladus Plumes and Hydrothermal Vents",
-        "Titan's Methane Lakes",
-        "The Drake Equation",
-        "SETI (Search for Extraterrestrial Intelligence)",
-        "Biosignatures (Methane, Phosphine)",
-        "Extremophiles on Earth (Analogues)",
-        "The Fermi Paradox",
-        "Panspermia Theory",
-        "Technosignatures"
-    ]
-}
-
-# --- ROBUST LOCALIZED SYSTEM PROMPT ---
-SYSTEM_PROMPT = """
-You are "UrbanSpace," a world-class Senior Science Communicator and Astrophysicist in late 2025.
-Generate exactly {count} Question and Answer pairs about: {topic}.
-
-### AUDIENCE PROFILE (Broad Appeal, Nigerian Centric)
-- **Primary Audience:** Nigerians (Students, Professionals, Families) and global space enthusiasts.
-- **Tone:** Intelligent, engaging, inspiring, and clear. Avoid overly casual slang that might alienate older users. Aim for a "Smart, Modern Nigerian Professional" tone (Think: A cool university lecturer).
-- **Language Style:** Standard Nigerian English (British/Commonwealth spelling). Clear, articulate, and professional.
-- **Localization Constraints:** - **NO Americanisms:** Use "pavement," "petrol," "football," "maths," "cinema."
-  - **Units:** STRICTLY METRIC (km, m, kg, Â°C).
-  - **Analogies:** Use relatable comparisons that almost any Nigerian would understand:
-    - Distance: "Roughly the distance from Lagos to Abuja."
-    - Size: "About the size of a standard football pitch."
-    - Weight: "Heavier than a 50kg bag of rice."
-
-### DEMOGRAPHIC MIX
-1. **Tier 1 (The Curious Beginner):** 40% of questions. Accessible to everyone (ages 12-80). Focus on wonder, danger, and sensory details. (e.g., "Can you hear explosions in space?").
-2. **Tier 2 (The Student/Career-Focused):** 40% of questions. Educational value. How things work, economic opportunities in space, and engineering.
-3. **Tier 3 (The Enthusiast/Expert):** 20% of questions. Deep dives, specific dates, orbital mechanics, and technical data.
-
-### RULES
-- **Date Context:** Today is late 2025.
-- **Objectivity:** When discussing private companies or nations, acknowledge global contributions (including Nigeria's NASRDA) without bias.
-- **Rich Text:** Answers must be 3-6 sentences. Narrative style, not robotic.
-- **Format:** Strictly Q: [Question] \\n A: [Answer] \\n\\n (Double newline separator).
-
-Begin generation now.
-"""
-
-def count_existing_questions(filepath):
-    """Scans the file and counts how many 'Q:' lines exist."""
-    if not os.path.exists(filepath):
-        return 0
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
-            return content.count("Q:")
-    except:
-        return 0
-
-def process_file_list(chain, file_list, phase_name):
-    """Helper function to process a specific list of files."""
-    if not file_list:
-        print(f"--- {phase_name}: NO FILES TO PROCESS ---")
-        return
-
-    print(f"--- {phase_name}: Processing {len(file_list)} files ---")
-    
-    for filename, subtopics in file_list:
-        filepath = os.path.join(OUTPUT_DIR, filename)
-        current_total = count_existing_questions(filepath)
-        
-        print(f"\n[{phase_name}] Target: {filename} (Current: {current_total}/{TARGET_TOTAL_PER_FILE})")
-        
-        target_per_subtopic = TARGET_TOTAL_PER_FILE // len(subtopics)
-        
-        # --- THE FIX: Shuffle the subtopics to ensure variety on restart ---
-        # We create a copy so we don't mess up the original map order
-        current_subtopics = list(subtopics)
-        random.shuffle(current_subtopics)
-        
-        for subtopic in current_subtopics:
-            # Re-check count frequently to avoid over-generating
-            if count_existing_questions(filepath) >= TARGET_TOTAL_PER_FILE:
-                print("  -> File Target Reached. Moving to next file.")
-                break
-
-            subtopic_generated = 0
-            
-            # Simple loop for this subtopic batch
-            while subtopic_generated < target_per_subtopic:
-                
-                if count_existing_questions(filepath) >= TARGET_TOTAL_PER_FILE:
-                    break
-
-                ask_count = BATCH_SIZE
-                print(f"  Topic: {subtopic} -> Fetching {ask_count}...", end=" ", flush=True)
-                
-                try:
-                    response = chain.invoke({
-                        "topic": subtopic,
-                        "count": str(ask_count)
-                    })
-                    
-                    content = response.content
-                    
-                    with open(filepath, "a", encoding="utf-8") as f:
-                        f.write("\n\n" + content + "\n\n")
-                    
-                    subtopic_generated += ask_count
-                    print(f"Success.")
-                    time.sleep(SLEEP_TIME)
-                    
-                except Exception as e:
-                    print(f"\nFAILED: {e}")
-                    if "rate_limit" in str(e).lower():
-                        print("CRITICAL: Rate Limit Hit. Waiting 2 minutes...")
-                        time.sleep(120)
-                    else:
-                        time.sleep(10)
-
-def generate_data():
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
-        print("ERROR: GROQ_API_KEY not found in .env")
-        return
-
-    llm = ChatGroq(
-        temperature=0.7, 
-        model="llama-3.3-70b-versatile",
-        api_key=api_key
-    )
-
-    prompt_template = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
-        ("human", "Generate the data for topic: {topic}")
-    ])
-
-    chain = prompt_template | llm
-    
-    # --- SORTING LOGIC ---
-    priority_empty = []
-    priority_partial = []
-    
-    print("\n--- ANALYZING FILE STATUS ---")
-    for filename, subtopics in TOPIC_MAP.items():
-        filepath = os.path.join(OUTPUT_DIR, filename)
-        count = count_existing_questions(filepath)
-        
-        if count == 0:
-            print(f"  [CRITICAL] {filename} is empty (0).")
-            priority_empty.append((filename, subtopics))
-        elif count < TARGET_TOTAL_PER_FILE:
-            print(f"  [PARTIAL]  {filename} needs work ({count}/{TARGET_TOTAL_PER_FILE}).")
-            # Store count so we can sort by it
-            priority_partial.append({
-                "filename": filename, 
-                "subtopics": subtopics, 
-                "count": count
-            })
-        else:
-            print(f"  [COMPLETE] {filename} is ready ({count}).")
-
-    # Sort the partial list by 'count' (Ascending) to prioritize starved files
-    priority_partial.sort(key=lambda x: x["count"])
-
-    # Convert back to simple tuple format for the processor
-    sorted_partial_list = [(item["filename"], item["subtopics"]) for item in priority_partial]
-
-    # --- EXECUTION ---
-    # Phase 1: Absolute Zero (Empty files)
-    process_file_list(chain, priority_empty, "PHASE 1 (EMPTY FILES)")
-    
-    # Phase 2: The Starved Files (Lowest count first)
-    process_file_list(chain, sorted_partial_list, "PHASE 2 (TOPPING UP - LOWEST FIRST)")
-
-    print("\n--- GENERATION COMPLETE ---")
-
-if __name__ == "__main__":
-    generate_data() 
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\app\tools\__pycache__\generate_seed_data.cpython-313.pyc
-# ---------------------
-ó
-
-    †„1iP-  ã            	       óÆ   • S SK r S SKrS SKrS SKJr  S SKJr  S SKJr  \" 5         Sr	Sr
-SrSr/ S	Q/ S
-Q/ SQ/ SQ/ S
-Q/ SQ/ SQ/ SQS.r
-SrS rS rS r\S:X  a  \" 5         gg)é    N)Úload_dotenv)ÚChatGroq)ÚChatPromptTemplateiô  é   zdata/rawé   )
-z:NASRDA (Nigeria's Space Agency): What do they actually do?z6NigeriaSat-1, 2, and X: Satellites built for NigerianszAThe Space Barons: Elon Musk vs. Jeff Bezos (The Billionaire Race)z;Could a Nigerian become an astronaut? (Future Career Paths)z8The Gross Truth: Toilet situations and hygiene in Zero-GzBSpace Myths: 'Juju' in space vs. Physics (Debunking superstitions)zBSci-Fi vs. Reality: Black Panther/Wakanda tech vs. Real Space Techz0Aliens: Are we alone or just ignoring the calls?z>Space Junk: Why it matters to internet in Lagos (Starlink etc)z4Rocket Lab & The Electron: Small rockets, big dreams)
-z/The Artemis Program & Lunar Gateway (2025-2026)z'SpaceX Starship Development & Flight 11z!Voyager 1 & 2 Interstellar Statusz$Mars Sample Return Mission LogisticszHistory of the Apollo Programz3The International Space Station (End of Life Plans)z,Private Space Stations (Orbital Reef, Axiom)zChina's Tiangong Space Stationz0Indian Space Research Organisation (Chandrayaan)z"The Hubble vs James Webb Telescope)
-z$Event Horizons and Spaghettificationz)Supermassive Black Holes (Sgr A* vs M87*)zHawking Radiation & EvaporationzTime Dilation near Black HoleszGravitational Waves & LIGOzPrimordial Black Holesz"Quasars and Active Galactic NucleizThe Information Paradoxz"Wormholes (Einstein-Rosen Bridges)zNeutron Stars vs Black Holes)
-z3The difference between Meteor, Meteoroid, Meteoritez,Famous Impact Craters (Chicxulub, Barringer)zThe Chelyabinsk Event (2013)z Planetary Defense (DART Mission)zComet Tails and OutgassingzThe Oort Cloud vs Kuiper Beltz#Meteor Showers (Perseids, Geminids)zHarvesting Asteroids for MiningzTunguska Eventz&Identifying Meteorites (Fusion Crusts))
-z)Effects of Microgravity on the Human Bodyz'Psychology of Long-Duration SpaceflightzSpace Suits (EVA) Mechanicsz,Famous Astronauts (Armstrong, Gagarin, Koch)z-Training for Space (The Neutral Buoyancy Lab)zFood and Hygiene in Spacez#Radiation Protection for Mars CrewszThe 'Overview Effect'zWomen in Space Historyz%Commercial Astronauts & Space Tourism)
-z#The Atmosphere of Venus (Acid Rain)z0Geology of Mars (Olympus Mons, Valles Marineris)zThe Great Red Spot of JupiterzSaturn's Ring System Physicsz#Uranus and Neptune (The Ice Giants)zMercury's Extreme TemperatureszPluto and Dwarf Planetsz'Exoplanets (Hot Jupiters, Super-Earths)z!Habitable Zones (Goldilocks Zone)zFormation of the Solar System)
-z.Rocket Propulsion Physics (Newton's Third Law)z!Ion Thrusters vs Chemical Rocketsz(Nuclear Thermal Propulsion (Future tech)z(The Space Shuttle (Engineering & Legacy)zSoyuz Spacecraft ReliabilityzSpaceX Falcon 9 ReusabilityzSolar SailszSpace Elevators (Theoretical)zGeneration Shipsz%Warp Drives (Alcubierre Drive Theory))
-zEuropa's Subsurface Oceanz'Enceladus Plumes and Hydrothermal VentszTitan's Methane LakeszThe Drake Equationz/SETI (Search for Extraterrestrial Intelligence)z"Biosignatures (Methane, Phosphine)z"Extremophiles on Earth (Analogues)zThe Fermi ParadoxzPanspermia TheoryÚTechnosignatures)zgeneral.txtzmissions.txtzblackholes.txtzmeteors.txtzastronauts.txtzplanets.txtzspaceships.txtzlife_outside.txtu|  
-You are "UrbanSpace," a world-class Senior Science Communicator and Astrophysicist in late 2025.
-Generate exactly {count} Question and Answer pairs about: {topic}.
-
-### AUDIENCE PROFILE (Broad Appeal, Nigerian Centric)
-- **Primary Audience:** Nigerians (Students, Professionals, Families) and global space enthusiasts.
-- **Tone:** Intelligent, engaging, inspiring, and clear. Avoid overly casual slang that might alienate older users. Aim for a "Smart, Modern Nigerian Professional" tone (Think: A cool university lecturer).
-- **Language Style:** Standard Nigerian English (British/Commonwealth spelling). Clear, articulate, and professional.
-- **Localization Constraints:** - **NO Americanisms:** Use "pavement," "petrol," "football," "maths," "cinema."
-  - **Units:** STRICTLY METRIC (km, m, kg, Â°C).
-  - **Analogies:** Use relatable comparisons that almost any Nigerian would understand:
-    - Distance: "Roughly the distance from Lagos to Abuja."
-    - Size: "About the size of a standard football pitch."
-    - Weight: "Heavier than a 50kg bag of rice."
-
-### DEMOGRAPHIC MIX
-1. **Tier 1 (The Curious Beginner):** 40% of questions. Accessible to everyone (ages 12-80). Focus on wonder, danger, and sensory details. (e.g., "Can you hear explosions in space?").
-2. **Tier 2 (The Student/Career-Focused):** 40% of questions. Educational value. How things work, economic opportunities in space, and engineering.
-3. **Tier 3 (The Enthusiast/Expert):** 20% of questions. Deep dives, specific dates, orbital mechanics, and technical data.
-
-### RULES
-- **Date Context:** Today is late 2025.
-- **Objectivity:** When discussing private companies or nations, acknowledge global contributions (including Nigeria's NASRDA) without bias.
-- **Rich Text:** Answers must be 3-6 sentences. Narrative style, not robotic.
-- **Format:** Strictly Q: [Question] \n A: [Answer] \n\n (Double newline separator).
-
-Begin generation now.
-c                 óê   • [         R                  R                  U 5      (       d  g [        U SSS9 nUR	                  5       nUR                  S5      sSSS5        $ ! , (       d  f       g= f!    g= f)z4Scans the file and counts how many 'Q:' lines exist.r   Úrúutf-8©ÚencodingzQ:N)ÚosÚpathÚexistsÚopenÚreadÚcount)ÚfilepathÚfÚcontents      ÚKC:\Users\ADEWUNMI\Space Exploration ChatBot\app\tools\generate_seed_data.pyÚcount_existing_questionsr   “   sW   € ä
-7‰7>‰>˜(×#Ñ#ØðÜ
-(˜C¨'Ò
-2°aØ—f‘f“hˆGØ—=‘= Ó&÷ 3×
-2×
-2ûðÙús(   §A. ²!AÁ	A. Á
-A+Á'A. Á+A. Á.A2c                 óf  • U(       d  [        SU S35        g[        SU S[        U5       S35        U GHi  u  p4[        R                  R	                  [
-        U5      n[
-        U5      n[        SU SU SU S	[         S
-3	5        [        [        U5      -  n[        U5      n[        R                  " U5        U Hß  n	[
-        U5      [        :¼  a  [        S5          Mª  Sn
-X§:  d  M-  [
-        U5      [        :¼  a  MB  [        n[        S
-U	 SU S3SSS9   U R                  U	[        U5      S.5      nUR                  n
-[        USSS9 nUR!                  SU
--   S-   5        SSS5        X«-
-  n
-[        S5        ["        R$                  " [&        5        X§:  a  M²  Má     GMl     g! , (       d  f       NH= f! [(         aq  n[        SU 35        S[        U5      R+                  5       ;   a&  [        S5        ["        R$                  " S5         SnAN}["        R$                  " S5         SnAN˜SnAff = f)z4Helper function to process a specific list of files.z--- z: NO FILES TO PROCESS ---Nz
-: Processing z
- files ---z
-[z
-] Target: z (Current: Ú/Ú)z.  -> File Target Reached. Moving to next file.r   z	  Topic: z
- -> Fetching z...Ú T)ÚendÚflush)Útopicr   Úar   r   z
-
-zSuccess.z	
-FAILED: Ú
-rate_limitz.CRITICAL: Rate Limit Hit. Waiting 2 minutes...éx   é
-   )ÚprintÚlenr   r   ÚjoinÚ
-OUTPUT_DIRr   ÚTARGET_TOTAL_PER_FILEÚlistÚrandomÚshuffleÚ
-BATCH_SIZEÚinvokeÚstrr   r   ÚwriteÚtimeÚsleepÚ
-SLEEP_TIMEÚ	ExceptionÚlower)ÚchainÚ	file_listÚ
-phase_nameÚfilenameÚ	subtopicsr   Ú
-current_totalÚtarget_per_subtopicÚcurrent_subtopicsÚsubtopicÚsubtopic_generatedÚ	ask_countÚresponser   r   Úes                   r   Úprocess_file_listrB   ž   sñ  € æÜ
-ZLÐ 9Ð:Ô;Øä	ˆD˜M¬#¨i«.Ð)9¸Ð
-DÔEä(ÑˆÜ—7‘7—<‘<¤
-¨HÓ5ˆÜ0°Ó:ˆ
-ä
-J<˜z¨(¨°;¸}¸oÈQÔOdÐNeÐefÐgÔhä3´s¸9³~ÑEÐô ! ›OÐÜŠÐ(Ô)ã)ˆHä'¨Ó1Ô5JÓJÜÐFÔGÚà!"Ðð %Õ:ä+¨HÓ5Ô9NÓNÙä&	Ü˜	 ( ¨=¸¸À3ÐGÈSÐX\Ò]ð'Ø$Ÿ|™|Ø!)Ü!$ Y£ñ-ó  Hð
- '×.Ñ.Gä˜h¨°gÒ>À!ØŸ™ ¨Ñ 0°6Ñ 9Ô:÷ ?ð 'Ñ3Ð&Ü˜HÔ&Ü—J’JœzÔ*ð+ %×:ô *ò  )÷L ?Õ>ûô !ó 'Ü˜J q cÐ*Ô+Ø#¤s¨1£v§|¡|£~Ó5ÜÐNÔOÜŸ
-š
- 3Ÿ™äŸ
-š
- 2Ÿ™ûð
-'ús7   Ä4F5Å
-F$Å"1F5Æ$
-F2Æ.F5Æ5
-H0Æ?AH+ÈH+È+H0c            
-      óò  • [         R                  " S5      n U (       d  [        S5        g [        SSU S9n[        R
-                  " S[        4S/5      nX!-  n/ n/ n[        S5        [        R                  5        H©  u  pg[         R                  R                  [        U5      n[        U5      n	U	S	:X  a#  [        S
-U S35        UR                  Xg45        M]  U	[        :  a0  [        SU S
-U	 S[         S35        UR                  UUU	S.5        M—  [        SU SU	 S35        M«     UR                  S S9  U V
-s/ s H  oªS   U
-S   4PM     nn
-[!        X4S5        [!        X;S5        [        S5        g s  sn
-f )NÚGROQ_API_KEYz%ERROR: GROQ_API_KEY not found in .envgffffffæ?zllama-3.3-70b-versatile)ÚtemperatureÚmodelÚapi_keyÚsystem)Úhumanz$Generate the data for topic: {topic}z
---- ANALYZING FILE STATUS ---r   z
-  [CRITICAL] z is empty (0).z
-  [PARTIAL]  z
- needs work (r   z).)r8   r9   r   z
-  [COMPLETE] z is ready (c                 ó   • U S   $ )Nr   © )Úxs    r   Ú<lambda>Úgenerate_data.<locals>.<lambda>  s   € ¨¨'ª
-ó    )Úkeyr8   r9   zPHASE 1 (EMPTY FILES)z#PHASE 2 (TOPPING UP - LOWEST FIRST)z
---- GENERATION COMPLETE ---)r   Úgetenvr$   r   r   Ú
-from_messagesÚ
-SYSTEM_PROMPTÚ	TOPIC_MAPÚitemsr   r&   r'   r   Úappendr(   ÚsortrB   )rG   ÚllmÚprompt_templater5   Úpriority_emptyÚpriority_partialr8   r9   r   r   ÚitemÚsorted_partial_lists               r   Ú
-generate_datar^   Û   s’  € ÜiŠi˜Ó'€GÞÜ
-Ð5Ô6Øä
-ØØ'Øñ€Cô )×6Ò6Ø	”=Ð!Ø9ð8ó €Oð
- 
-Ñ!€Eð €NØÐä	Ð
-+Ô,Ü(Ÿ™Ö0ÑˆÜ—7‘7—<‘<¤
-¨HÓ5ˆÜ(¨Ó2ˆàA‹:ÜM ( ¨>Ð:Ô;Ø×!Ñ! 8Ð"7Ö8Ø
-Ô*Ó
-*ÜM ( ¨=¸¸¸qÔAVÐ@WÐWYÐZÔ[à×#Ñ#Ø$Ø&Øñ%ö 
-ô 
-M ( ¨;°u°g¸RÐ@ÖAñ!  1ð& ×ÑÑ2ÐÑ3ñ N^Ó^ÒM]ÀT Ñ,¨d°;Ñ.?Ó@ÑM]ÐÐ^ô eÐ-DÔEô eÐ2WÔXä	Ð
-)Õ*ùò _s   Ä;E4Ú__main__)r   r0   r*   Údotenvr   Úlangchain_groqr   Úlangchain_core.promptsr   r(   r,   r'   r2   rT   rS   r   rB   r^   Ú__name__rK   rO   r   Ú<module>rd      s“   ðÛ 	Û Û 
-Ý Ý #Ý 5ñ „
-ð Ð Ø
-€
-Ø
-€
-Ø
-€
-òòòòòòòòñka
-€	ðH€
-ò:	ò;'òz7+ðr ˆzÓÙ…Oð rO   
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\Backup\app.py
-# ---------------------
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\Backup\chatbot.py
-# ---------------------
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import json
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-
-from knowledge_base  import load_knowledge_base
-from utils import preprocess_text, playful_responses
-
-class Chatbot:
-    def __init__(self, knowledge_base_path: str, confidence_threshold: float = 0.2):
-        """
-        Initialise the chatbot:
-        - Load the knowledge base 
-        - Preprocess all questions
-        - Build TF-IDF matrix for  similarity search
-        - Set a configurable confidence threshold
-        """
-
-        self.knowledge_base = load_knowledge_base(knowledge_base_path)
-        self.confidence_threshold = confidence_threshold
-
-        # Separate questions and answers 
-        self.questions = [item["question"] for item in self.knowledge_base]
-        self.answers =  [item["answer"] for item in self.knowledge_base]
-
-
-        # Build TF_IDF vectorizer
-        self.vectorizer = TfidfVectorizer(tokenizer= preprocess_text)
-        self.question_vectors = self.vectorizer.fit_transform(self.processed_questions)
-
-    def get_response(self, user_input: str) -> str:
-        """
-        Process user input, compare it with knowledge base
-        and returns the most relevant answer.
-        """
-
-        if not user_input.strip():
-            return playful_responses()
-       
-        processed_input = preprocess_text(user_input)
-        input_vector = self.vectorizer.transform([processed_input])
-
-        # Compute Similarity
-        similarities = cosine_similarity(input_vector, self.question_vectors)
-        best_match_index = similarities.argmax()
-        best_score = similarities[0][best_match_index]
-
-        # Apply configurable confidence threshold
-        if best_score < self.confidence_threshold:
-            return playful_responses()
-        return self.answers[best_match_index]
-
-if __name__ == "__main__":  
-    #Simple REPL for testing
-    bot = Chatbot("Data", confidence_threshold = 0.25)
-    bot_name = input("What's my name at this development stage? :")
-    print(f"{bot_name}: Space Exploration ChatBot  --> type 'quit' to exit" )
-    while True:
-        user_input = input("You:  ")
-        if user_input.lower() in ["quit", "exit", "bye", "alright, thank you"]:
-            print(f"{bot_name}: Yeah, i'd be in space waiting....")
-            break
-        response = bot.get_response(user_input)
-        print(f"{bot_name}:", response)
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\Backup\knowledge_base.py
-# ---------------------
-import os
-
-def load_knowledge_base(directory_path):
-    """
-    Loads all .txt files from the given directory, parses Q/A pairs, and returns a list of dicts:
-    [
-        {"question": "...", "answer": "..."},
-        ...
-    ]
-    Assumes each Q/A pair in the file is formatted as:
-    Q: ...\nA: ...\n (blank line between pairs)
-    """
-
-    knowledge = []
-    for filename in os.listdir(directory_path):
-        if filename.endswith(".txt"):
-            file_path = os.path.join(directory_path, filename)  # Full path to file
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            # Split into blocks by blank lines
-            blocks = [block.strip() for block in content.split('\n\n') if block.strip()]
-            for block in blocks:
-                lines = block.splitlines()
-                question, answer = None, None
-                for line in lines:
-                    if line.startswith('Q:'):
-                        question = line[2:].strip()
-                    elif line.startswith('A:'):
-                        answer = line[2:].strip()
-                if question and answer:
-                    knowledge.append({"question": question, "answer": answer})
-    return knowledge
-
-
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\Backup\test_chatbot.py
-# ---------------------
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Enables python to look up the parent folder
-from Backup.chatbot import Chatbot
-
-def main():
-    # initializes chatbot
-    bot = Chatbot(knowledge_base_file="knowledge_base.json", confidence_threshold = 0.2)
-    bot_name = input("What's my name at this phase? :")
-
-    print(f"{bot_name} Test (Type 'exit' to quit)\n")
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() in ["Exit", "Quit"]:
-            print("-" * 40, "\n", " Exiting Test...........", "-" * 40)
-            break
-
-        response = bot.get_response(user_input)
-        print(f"{bot_name}: ", response)
-
-
-if __name__ == "__main__":
-    main()
-
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\Backup\test_utils.py
-# ---------------------
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Enables python to look up the parent folder
-from Backup.utils import preprocess_text
-
-
-# Example user inputs to test preprocessing
-
-sentences = ["The astronauts are runnning quicky!", "Spaceships flew faster than meteors.",
-             "He is running. Running is his hobby."]
-
-for s in sentences:
-    print(f"Original: {s}")
-    print(f"Processed: {preprocess_text(s)}")
-    print("-" * 40)
-
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\Backup\utils.py
-# ---------------------
-import random
-import nltk
-import string
-from nltk.stem import WordNetLemmatizer
-from nltk.corpus import wordnet
-
-
-
-# Ensure neccessary NLTK data is downloaded 
-nltk.download ('punkt')
-nltk.download('wordnet')
-nltk.download('averaged_perceptron_tagger')
-
-def preprocess_text(text):
-    """
-    Tokenizes, lowercases, removes punctuation, and lemmatizes input text.add
-    Returns a list of clean tokens. 
-    """
-    # initializes lemmatizer 
-    lemmatizer = WordNetLemmatizer()
-
-    # Step 1: Tokenize 
-    tokens = nltk.word_tokenize(text)
-
-    # Step 2: Lowercase
-    tokens = [token.lower() for token in tokens]
-
-    # Step 3: Remove Punctuation
-    tokens = [token for token in tokens if token not in string.punctuation]
-
-    # Step 4: POS (Part of speech) tagging 
-    pos_tags = nltk.pos_tag(tokens)
-
-    # Steps 5: Lemmatize based on POS
-    def get_wordnet_pos(tag):
-        """
-        Convert POS tag to format recognized by WordNetLemmatizer
-        """
-        if tag.startswith('J'):
-            return wordnet.ADJ
-        elif tag.startswith('V'):
-            return wordnet.VERB
-        elif tag.startswith('N'):
-            return wordnet.NOUN
-        elif tag.startswith('R'):
-            return wordnet.ADV
-        else:
-            return wordnet.NOUN    # default
-
-    lemmatized_tokens = [lemmatizer.lemmatize(word, get_wordnet_pos(tag)) for word, tag in pos_tags]
-
-    return lemmatized_tokens
-
-
-def playful_responses():
-    """
-    Generates Random playful resposes to unknown user questions.
-    """
-    replies = [
-        "Hmmn, I would get back to you. I'm phoning NASA for that....",
-        "Hmm, that question's in a different galaxy. Try asking me about blackholes",
-        "Even my cosmic database doesn't have an answer to that one. Ask me about blackholes instead!",
-        "That's beyond my event horizon. How about something closer to home, like Mars?",
-        "My circuits are drawing a blank on that one. Maybe try rephrasing?", 
-        "I'm still learning! Could you ask me about something space-related instead?", 
-        "Error  404: Space knowledge not found. Try asking about rockets or Astronauts?", 
-        "The cosmos hasn't revealed that secret to me yet. What else wonders you?", 
-        "Some mysteries remain within the stars. Perhaps ask about known celestial bodies instead?",
-        "That knowledge is still orbiting in uncharted space. Try a different question!",
-        "That's outside my current knowledge base. Want to try a space-related question instead?"
-    ]
-
-    return random.choice(replies)
-
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\Backup\__init__.py
-# ---------------------
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\Backup\__pycache__\test_utils.cpython-313.pyc
-# ---------------------
-ó
-
-    ~Ñhe  ã                   ór   • S SK Jr  / SQr\ H'  r\" S\ 35        \" S\" \5       35        \" S5        M)     g)é    )Úpreprocess_text)z#The astronauts are runnning quicky!z$Spaceships flew faster than meteors.z$He is running. Running is his hobby.z
-Original: zProcessed: z(----------------------------------------N)Ú
-Backend.utilsr   Ú	sentencesÚsÚprint© ó    ÚPC:\Users\ADEWUNMI\OneDrive\Desktop\Space Exploration ChatBot\Tests\test_utils.pyÚ<module>r      sF   ðÝ )ò
-5€	ó 
-€AÙ	ˆJqcÐ
-ÔÙ	ˆK™¨Ó*Ð+Ð
-,Ô-Ù	ˆ(†Oò 
-r	   
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\UrbanSpace\.gitignore
-# ---------------------
-# Created by venv; see https://docs.python.org/3/library/venv.html
-*
-
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\UrbanSpace\pyvenv.cfg
-# ---------------------
-home = C:\Users\ADEWUNMI\AppData\Local\Programs\Python\Python313
-include-system-site-packages = false
-version = 3.13.2
-executable = C:\Users\ADEWUNMI\AppData\Local\Programs\Python\Python313\python.exe
-command = C:\Users\ADEWUNMI\AppData\Local\Programs\Python\Python313\python.exe -m venv C:\Users\ADEWUNMI\Space Exploration ChatBot\UrbanSpace
-
-
-
-# ---------------------
-# FILE: C:\Users\ADEWUNMI\Space Exploration ChatBot\UrbanSpace\Include\site\python3.13\greenlet\greenlet.h
-# ---------------------
-/* -*- indent-tabs-mode: nil; tab-width: 4; -*- */
-
-/* Greenlet object interface */
-
-#ifndef Py_GREENLETOBJECT_H
-#define Py_GREENLETOBJECT_H
-
-
-#include <Python.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* This is deprecated and undocumented. It does not change. */
-#define GREENLET_VERSION "1.0.0"
-
-#ifndef GREENLET_MODULE
-#define implementation_ptr_t void*
-#endif
-
-typedef struct _greenlet {
-    PyObject_HEAD
-    PyObject* weakreflist;
-    PyObject* dict;
-    implementation_ptr_t pimpl;
-} PyGreenlet;
-
-#define PyGreenlet_Check(op) (op && PyObject_TypeCheck(op, &PyGreenlet_Type))
-
-
-/* C API functions */
-
-/* Total number of symbols that are exported */
-#define PyGreenlet_API_pointers 12
-
-#define PyGreenlet_Type_NUM 0
-#define PyExc_GreenletError_NUM 1
-#define PyExc_GreenletExit_NUM 2
-
-#define PyGreenlet_New_NUM 3
-#define PyGreenlet_GetCurrent_NUM 4
-#define PyGreenlet_Throw_NUM 5
-#define PyGreenlet_Switch_NUM 6
-#define PyGreenlet_SetParent_NUM 7
-
-#define PyGreenlet_MAIN_NUM 8
-#define PyGreenlet_STARTED_NUM 9
-#define PyGreenlet_ACTIVE_NUM 10
-#define PyGreenlet_GET_PARENT_NUM 11
-
-#ifndef GREENLET_MODULE
-/* This section is used by modules that uses the greenlet C API */
-static void** _PyGreenlet_API = NULL;
-
-#    define PyGreenlet_Type \
-        (*(PyTypeObject*)_PyGreenlet_API[PyGreenlet_Type_NUM])
-
-#    define PyExc_GreenletError \
-        ((PyObject*)_PyGreenlet_API[PyExc_GreenletError_NUM])
-
-#    define PyExc_GreenletExit \
-        ((PyObject*)_PyGreenlet_API[PyExc_GreenletExit_NUM])
-
-/*
- * PyGreenlet_New(PyObject *args)
- *
- * greenlet.greenlet(run, parent=None)
- */
-#    define PyGreenlet_New                                        \
-        (*(PyGreenlet * (*)(PyObject * run, PyGreenlet * parent)) \
-             _PyGreenlet_API[PyGreenlet_New_NUM])
-
-/*
- * PyGreenlet_GetCurrent(void)
- *
- * greenlet.getcurrent()
- */
-#    define PyGreenlet_GetCurrent \
-        (*(PyGreenlet * (*)(void)) _PyGreenlet_API[PyGreenlet_GetCurrent_NUM])
-
-/*
- * PyGreenlet_Throw(
- *         PyGreenlet *greenlet,
- *         PyObject *typ,
- *         PyObject *val,
- *         PyObject *tb)
- *
- * g.throw(...)
- */
-#    define PyGreenlet_Throw                 \
-        (*(PyObject * (*)(PyGreenlet * self, \
-                          PyObject * typ,    \
-                          PyObject * val,    \
-                          PyObject * tb))    \
-             _PyGreenlet_API[PyGreenlet_Throw_NUM])
-
-/*
- * PyGreenlet_Switch(PyGreenlet *greenlet, PyObject *args)
- *
- * g.switch(*args, **kwargs)
- */
-#    define PyGreenlet_Switch                                              \
-        (*(PyObject *                                                      \
-           (*)(PyGreenlet * greenlet, PyObject * args, PyObject * kwargs)) \
-             _PyGreenlet_API[PyGreenlet_Switch_NUM])
-
-/*
- * PyGreenlet_SetParent(PyObject *greenlet, PyObject *new_parent)
- *
- * g.parent = new_parent
- */
-#    define PyGreenlet_SetParent                                 \
-        (*(int (*)(PyGreenlet * greenlet, PyGreenlet * nparent)) \
-             _PyGreenlet_API[PyGreenlet_SetParent_NUM])
-
-/*
- * PyGreenlet_GetParent(PyObject* greenlet)
- *
- * return greenlet.parent;
- *
- * This could return NULL even if there is no exception active.
- * If it does not return NULL, you are responsible for decrementing the
- * reference count.
- */
-#     define PyGreenlet_GetParent                                    \
-    (*(PyGreenlet* (*)(PyGreenlet*))                                 \
-     _PyGreenlet_API[PyGreenlet_GET_PARENT_NUM])
-
-/*
- * deprecated, undocumented alias.
- */
-#     define PyGreenlet_GET_PARENT PyGreenlet_GetParent
-
-#     define PyGreenlet_MAIN                                         \
-    (*(int (*)(PyGreenlet*))                                         \
-     _PyGreenlet_API[PyGreenlet_MAIN_NUM])
-
-#     define PyGreenlet_STARTED                                      \
-    (*(int (*)(PyGreenlet*))                                         \
-     _PyGreenlet_API[PyGreenlet_STARTED_NUM])
-
-#     define PyGreenlet_ACTIVE                                       \
-    (*(int (*)(PyGreenlet*))                                         \
-     _PyGreenlet_API[PyGreenlet_ACTIVE_NUM])
-
-
-
-
-/* Macro that imports greenlet and initializes C API */
-/* NOTE: This has actually moved to ``greenlet._greenlet._C_API``, but we
-   keep the older definition to be sure older code that might have a copy of
-   the header still works. */
-#    define PyGreenlet_Import()                                               \
-        {                                                                     \
-            _PyGreenlet_API = (void**)PyCapsule_Import("greenlet._C_API", 0); \
-        }
-
-#endif /* GREENLET_MODULE */
-
-#ifdef __cplusplus
-}
-#endif
-#endif /* !Py_GREENLETOBJECT_H */
-
