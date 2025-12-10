@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import logging
+import stat
 from typing import List, Optional
 
 # LangChain Imports
@@ -43,19 +44,33 @@ class VectorDBService:
         # Running on CPU? This model is optimized for it.
         self.embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 
+
     def build_knowledge_base(self, force_clean: bool = True):
         """
         Orchestrates the complete rebuilding of the Vector Database.
-        
-        Args:
-            force_clean (bool): If True, deletes existing DB to prevent duplicates.
+        Includes a Windows-specific fix for Permission Errors.
         """
         logger.info("🚀 STARTING KNOWLEDGE BASE BUILD PROTOCOL")
 
+        # --- WINDOWS FIX: Force Delete Handler ---
+        def remove_readonly(func, path, _):
+            "Clear the Read-Only bit and re-attempt the deletion"
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+
         # 1. CLEAN SLATE PROTOCOL
         if force_clean and os.path.exists(self.db_path):
-            logger.warning(f"🧹 Removing old vector store at {self.db_path} for a clean build...")
-            shutil.rmtree(self.db_path)
+            logger.warning(f"🧹 Removing old vector store at {self.db_path}...")
+            try:
+                # We use onexc (Python 3.12+) or onerror (older) to handle locks
+                shutil.rmtree(self.db_path, onexc=remove_readonly)
+            except TypeError:
+                # Fallback for older python versions if needed
+                shutil.rmtree(self.db_path, onerror=remove_readonly)
+            except Exception as e:
+                logger.warning(f"⚠️ Could not delete folder automatically (Locked?): {e}")
+                logger.warning("➡️ Please manually delete 'data/vector_store' and try again.")
+                return
 
         # 2. INGESTION
         engine = IngestionEngine()
@@ -65,25 +80,20 @@ class VectorDBService:
             logger.error("❌ CRITICAL: No raw data found. Aborting build.")
             return
 
-        # 3. CONVERSION (Dict -> Document Objects)
-        # We explicitly convert dictionaries to LangChain 'Document' objects here
-        # so we have full control before splitting.
+        # 3. CONVERSION
         documents = [
             Document(page_content=d["text"], metadata=d["metadata"]) 
             for d in raw_data_dicts
         ]
         
-        # 4. CHUNKING (The "Safety Net")
-        # We use a larger chunk size to respect the atomic nature of Q&A pairs.
+        # 4. CHUNKING
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=CHUNK_SIZE,
             chunk_overlap=CHUNK_OVERLAP,
-            separators=["\n\n", "\n", " ", ""] # Prioritize splitting by double newlines
+            separators=["\n\n", "\n", " ", ""] 
         )
         
-        # This will only split if a specific Q&A block is > 1500 chars
         final_docs = text_splitter.split_documents(documents)
-        
         logger.info(f"📊 Processing Stats: {len(documents)} Raw Blocks -> {len(final_docs)} Vectorized Chunks")
 
         # 5. EMBEDDING & INDEXING
