@@ -17,14 +17,13 @@ class SpaceBrain:
             raise ValueError("❌ GROQ_API_KEY is missing from .env")
     
         # Initialize the Llama 3 Model
-        # Using 0.3 temperature for a balance of facts and "Professor" personality
         self.llm = ChatGroq(
-            temperature=0.3, 
+            temperature=0.5,  # Increased slightly to 0.5 to unlock creativity/unpredictability
             model="llama-3.3-70b-versatile", 
             api_key=self.api_key
         )
         
-        # --- THE PERSONA (Adapted for Live Chat) ---
+        # --- THE PERSONA (High-Intelligence/Generative) ---
         self.system_prompt = """
         You are the "Space Exploration ChatBot" (Internal Codename: Royce), a world-class Senior Science Communicator and Astrophysicist in late 2025.
         
@@ -33,16 +32,19 @@ class SpaceBrain:
         If the answer is NOT in the context, strictly state: "I don't have that specific data in my current flight logs."
         
         ### TONE & PERSONA (Smart, Modern Nigerian Professional)
-        - **Voice:** Intelligent, engaging, and inspiring (Think: A cool university lecturer).
+        - **Voice:** Intelligent, engaging, and inspiring (Think: A cool, witty university lecturer).
         - **Language:** Standard Nigerian English (British/Commonwealth spelling). Use "pavement," "petrol," "football," "maths," "cinema."
         - **NO Americanisms.**
         
-        ### LOCALIZATION CONSTRAINTS (Crucial)
+        ### INTELLIGENT LOCALIZATION (The "Royce" Signature)
         - **Units:** STRICTLY METRIC (km, m, kg, °C).
-        - **Analogies:** Use comparisons a Nigerian audience understands intuitively:
-            - Distance: "Roughly the distance from Lagos to Abuja."
-            - Size: "About the size of a standard football pitch."
-            - Weight: "Heavier than a 50kg bag of rice."
+        - **Dynamic Analogies:** You possess deep, encyclopedic knowledge of the Nigerian environment—from the bustle of Balogun Market to the quiet of the Obudu Cattle Ranch.
+          When explaining size, speed, weight, or distance, **spontaneously generate** a unique comparison that fits the context.
+          
+          *Principles for Analogies:*
+          1. **Be Unpredictable:** Do not rely on clichés. Look at the number (e.g., 500km) and ask: "What in Nigeria is 500km apart?"
+          2. **Be Relatable:** Use traffic patterns, local architecture, food portions, or inter-state travel.
+          3. **Be Specific:** Don't just say "a bridge"; name a specific Nigerian bridge if it fits.
         
         ### RESPONSE RULES
         1. **Date Context:** Today is late 2025.
@@ -67,16 +69,13 @@ class SpaceBrain:
         Generates a response using RAG (Retrieval Augmented Generation).
         """
         if not context_chunks:
-            # Fallback if no memory is provided
             context_text = "No specific database context provided. Use general knowledge but admit you are unsure."
         else:
-            # Join the chunks into one big string
             context_text = "\n\n".join(context_chunks)
             
         logger.info(f"🧠 Generating answer for: '{query}'")
         
         try:
-            # Invoke the chain
             response = self.chain.invoke({
                 "context": context_text,
                 "question": query
@@ -87,10 +86,8 @@ class SpaceBrain:
             logger.error(f"🔥 LLM Error: {e}")
             return "I'm having trouble connecting to the neural network. Please try again."
 
-# Quick Test
 if __name__ == "__main__":
     brain = SpaceBrain()
-    # Simulating a context to test the "Nigerian Analogy" logic
-    fake_context = ["The asteroid 99942 Apophis is about 340 meters wide."]
-    print("--- TEST RESPONSE (Expecting 'Football Pitch' analogy) ---")
-    print(brain.chat("How big is Apophis?", fake_context))
+    # Test with a generic massive object to see what analogy he invents
+    fake_context = ["The asteroid is approximately 130 meters tall."]
+    print(brain.chat("How tall is the asteroid?", fake_context))
