@@ -60,7 +60,7 @@ def main():
         elapsed = time.time() - start_time
         
         print(f"🤖 ROYCE: {response}")
-        print(f"   (Latency: {elapsed:.2f}s | Sources Found: {len(results)})")
+        print(f"   (Latency: {elapsed:.2f}s | Sources Found: {len(results)})") #....
         
         # 6. NEW: Update Memory
         # Add the interaction to the history list
