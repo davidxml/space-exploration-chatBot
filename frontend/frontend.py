@@ -17,7 +17,7 @@ st.set_page_config(
 # --- ASSET CONFIGURATION ---
 # 1. Define the Avatar Source for the Chat Stream
 # Streamlit accepts a local file path or a URL directly for the 'avatar' parameter.
-local_image_path = os.path.join("assets", "astronaut.png")
+local_image_path = os.path.join("assets", "royce.png")
 
 if os.path.exists(local_image_path):
     ROYCE_AVATAR = local_image_path  # Use your local file
