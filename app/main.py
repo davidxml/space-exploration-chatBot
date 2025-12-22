@@ -1,7 +1,9 @@
 import logging
 import time
+import httpx
 from typing import List, Dict, Any
 from contextlib import asynccontextmanager
+
 
 # FastAPI Framework
 from fastapi import FastAPI, HTTPException
@@ -83,9 +85,9 @@ async def lifespan(app: FastAPI):
 
 # --- 5. APP INITIALIZATION ---
 app = FastAPI(
-    title="Royce Intelligent Backend",
+    title="Royce: Space Exploration ChatBot",
     version="1.0",
-    description="API Layer for Space Exploration RAG Agent",
+    description="API Layer for Space Exploration ChatBot",
     lifespan=lifespan # Link the lifecycle manager above
 )
 
@@ -93,11 +95,32 @@ app = FastAPI(
 
 @app.get("/")
 async def health_check():
-    """Simple ping to check if server is alive."""
+    """
+    Ping status with Real-Time Geolocation.
+    Fetches the server's public location dynamically.
+    """
+    current_location = "Unknown (Offline)"
+    
+    try:
+        # Asynchronously fetch location based on public IP
+        async with httpx.AsyncClient() as client:
+            # ip-api is free and doesn't require an API key for low volume
+            response = await client.get("http://ip-api.com/json/", timeout=2.0)
+            data = response.json()
+            
+            if data['status'] == 'success':
+                current_location = f"{data['city']}, {data['regionName']}, {data['country']}"
+            else:
+                current_location = "Location Lookup Failed"
+                
+    except Exception as e:
+        # Fallback if internet is down or API is unreachable
+        current_location = "Telemetry Unavailable"
+
     return {
         "status": "online", 
         "system": "Royce v1.0", 
-        "location": "Pakuro, Ogun State"
+        "server_location": current_location
     }
 
 @app.post("/chat", response_model=ChatResponse)
