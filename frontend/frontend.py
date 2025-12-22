@@ -1,8 +1,8 @@
 import streamlit as st
 import requests
-import time
 import base64
 import os
+from PIL import Image # <--- CRITICAL IMPORT FOR IMAGES
 
 # --- CONFIGURATION ---
 API_URL = "http://127.0.0.1:8000/chat"
@@ -14,34 +14,36 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- ASSET CONFIGURATION ---
-# 1. Define the Avatar Source for the Chat Stream
-# Streamlit accepts a local file path or a URL directly for the 'avatar' parameter.
-local_image_path = os.path.join("assets", "royce.png")
+# --- 1. BULLETPROOF ASSET LOADING ---
+# This ensures we find the image relative to THIS script file, 
+# not where the terminal command was run.
+current_dir = os.path.dirname(os.path.abspath(__file__))
+image_path = os.path.join(current_dir, "assets", "royce.png")
 
-if os.path.exists(local_image_path):
-    ROYCE_AVATAR = local_image_path  # Use your local file
-else:
-    # Fallback if you haven't put the file there yet
-    ROYCE_AVATAR = "https://cdn-icons-png.flaticon.com/512/2026/2026521.png"
+# Initialize variables
+ROYCE_AVATAR = "https://cdn-icons-png.flaticon.com/512/2026/2026521.png" # Default Fallback
+header_img_src = ROYCE_AVATAR
 
-# 2. Helper for the Header (HTML requires Base64)
-def get_img_as_base64(file_path):
+# Try to load the local file
+if os.path.exists(image_path):
+    # Load into memory for the Chat Bubble (Streamlit likes PIL Images)
     try:
-        with open(file_path, "rb") as f:
+        ROYCE_AVATAR = Image.open(image_path)
+        
+        # Load as Base64 for the HTML Header
+        with open(image_path, "rb") as f:
             data = f.read()
-        return base64.b64encode(data).decode()
-    except FileNotFoundError:
-        return None
-
-# Get Base64 for the top header (HTML only)
-header_img_b64 = get_img_as_base64(local_image_path)
-if header_img_b64:
-    header_img_src = f"data:image/png;base64,{header_img_b64}"
+            b64_data = base64.b64encode(data).decode()
+            header_img_src = f"data:image/png;base64,{b64_data}"
+    except Exception as e:
+        st.error(f"Error loading image: {e}")
 else:
-    header_img_src = ROYCE_AVATAR
+    # Debugging: Uncomment this line if image still fails to see where it's looking
+    # st.warning(f"Could not find image at: {image_path}")
+    pass
 
-# --- CSS STYLING (The "Void" Theme) ---
+
+# --- CSS STYLING (Dark Mode & Comets) ---
 st.markdown(f"""
 <style>
     /* DARK VOID BACKGROUND */
@@ -61,7 +63,7 @@ st.markdown(f"""
         border: 1px solid #333 !important; border-radius: 12px;
     }}
     
-    /* HIDE STREAMLIT BRANDING */
+    /* HIDE BRANDING */
     header, footer {{visibility: hidden;}}
 
     /* COMET ANIMATION */
@@ -86,7 +88,7 @@ st.markdown(f"""
 </script>
 """, unsafe_allow_html=True)
 
-# --- HEADER (Using HTML Base64 Image) ---
+# --- HEADER SECTION ---
 col1, col2 = st.columns([1, 12])
 with col1:
     st.markdown(f"""
@@ -109,22 +111,19 @@ if "messages" not in st.session_state:
 
 # Render History
 for msg in st.session_state.messages:
-    # --- CHANGE 1: Use ROYCE_AVATAR variable instead of "🤖" ---
-    # If role is user, use User Icon. If assistant, use the Astronaut Image.
+    # Use variable logic for Avatar
     icon = "🧑‍🚀" if msg["role"] == "user" else ROYCE_AVATAR
-    
     with st.chat_message(msg["role"], avatar=icon):
         st.markdown(msg["content"])
 
 # Handle Input
 if prompt := st.chat_input("Enter command coordinates..."):
-    # Render User
+    # User Message
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user", avatar="🧑‍🚀"):
         st.markdown(prompt)
 
-    # Render Assistant (Waiting...)
-    # --- CHANGE 2: Use ROYCE_AVATAR here too ---
+    # Assistant Response
     with st.chat_message("assistant", avatar=ROYCE_AVATAR):
         msg_placeholder = st.empty()
         msg_placeholder.markdown("`Decrypting subspace transmission...`")
@@ -142,11 +141,10 @@ if prompt := st.chat_input("Enter command coordinates..."):
                 data = response.json()
                 ai_text = data["response"]
                 
-                # Render Final Text
                 msg_placeholder.markdown(ai_text)
                 st.session_state.messages.append({"role": "assistant", "content": ai_text})
                 
-                # Footer Telemetry
+                # Telemetry
                 st.markdown(f"""
                 <div style='font-size: 0.8rem; color: #00ff00; margin-top: 10px; font-family: monospace;'>
                 ⚡ Latency: {data['latency']}s | 🛰️ Sources: {len(data['sources'])}
@@ -154,6 +152,5 @@ if prompt := st.chat_input("Enter command coordinates..."):
                 """, unsafe_allow_html=True)
             else:
                 msg_placeholder.error(f"🚨 COMMS FAILURE (Code {response.status_code})")
-                
         except Exception as e:
             msg_placeholder.error(f"🚨 SIGNAL LOST: {e}")
