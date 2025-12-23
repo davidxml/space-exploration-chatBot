@@ -3,7 +3,7 @@ import sys
 import shutil
 import logging
 import stat
-from typing import List, Optional
+from typing import Optional
 
 # LangChain Imports
 from langchain_community.vectorstores import FAISS
@@ -12,20 +12,10 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
 # --- PATH FIX: Allow running this file directly ---
-# This tells Python: "The root of the project is two folders up (../../)"
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
 # Local Modules
 from app.services.ingestion import IngestionEngine
-
-
-# --- CONFIGURATION ---
-DB_PATH = "data/vector_store"
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-# Increased to 1500 to keep Q&A pairs intact (Atomic Units).
-# Overlap ensures if we DO split, context isn't lost at the seam.
-CHUNK_SIZE = 1500
-CHUNK_OVERLAP = 150
 
 # Configure Professional Logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -37,21 +27,34 @@ class VectorDBService:
     Manages embedding generation and vector storage.
     """
     
-    def __init__(self, db_path: str = DB_PATH):
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        """
+        Initializes the Vector Service.
+        """
+        # Local import to avoid circular dependency with config.py
+        from app.core.config import settings
         
-        logger.info(f"🔌 Initializing Embedding Model: {EMBEDDING_MODEL}")
+        # Use passed path OR default from settings
+        self.db_path = db_path if db_path else settings.VECTOR_DB_PATH
+        
+        # --- FIX 1: Initialize index to None ---
+        # This prevents "access-member-before-definition" errors in Pylint
+        self.index = None
+        
+        # Model Configuration
+        self.embedding_model_name = settings.EMBEDDING_MODEL
+        
+        logger.info(f"🔌 Initializing Embedding Model: {self.embedding_model_name}")
         # Running on CPU? This model is optimized for it.
-        self.embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
-
-    # ... inside class VectorDBService ...
+        self.embeddings = HuggingFaceEmbeddings(model_name=self.embedding_model_name)
 
     def search(self, query: str, k: int = 3):
         """
         Safe wrapper for searching the vector index.
+        Used by routes.py to avoid direct access to FAISS internals.
         """
         # 1. Check if index is loaded in memory
-        if not hasattr(self, 'index') or self.index is None:
+        if self.index is None:
             # 2. Try to load it from disk
             self.index = self.load_knowledge_base()
         
@@ -79,10 +82,9 @@ class VectorDBService:
         if force_clean and os.path.exists(self.db_path):
             logger.warning(f"🧹 Removing old vector store at {self.db_path}...")
             try:
-                # We use onexc (Python 3.12+) or onerror (older) to handle locks
+                # We use onexc (Python 3.12+) or onerror (older)
                 shutil.rmtree(self.db_path, onexc=remove_readonly)
             except TypeError:
-                # Fallback for older python versions if needed
                 shutil.rmtree(self.db_path, onerror=remove_readonly)
             except Exception as e:
                 logger.warning(f"⚠️ Could not delete folder automatically (Locked?): {e}")
@@ -105,8 +107,8 @@ class VectorDBService:
         
         # 4. CHUNKING
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=CHUNK_SIZE,
-            chunk_overlap=CHUNK_OVERLAP,
+            chunk_size=1500,
+            chunk_overlap=150,
             separators=["\n\n", "\n", " ", ""] 
         )
         
@@ -119,6 +121,9 @@ class VectorDBService:
         try:
             db = FAISS.from_documents(final_docs, self.embeddings)
             db.save_local(self.db_path)
+            # --- FIX 2: Update self.index immediately after building ---
+            self.index = db
+            
             logger.info(f"✅ SUCCESS: Knowledge Base saved to '{self.db_path}'")
             logger.info(f"✅ Total Vectors Indexed: {db.index.ntotal}")
         except Exception as e:
@@ -133,11 +138,17 @@ class VectorDBService:
             return None
             
         logger.info("📂 Loading Vector Database from disk...")
-        return FAISS.load_local(
-            self.db_path, 
-            self.embeddings, 
-            allow_dangerous_deserialization=True
-        )
+        try:
+            # --- FIX 3: Assign to self.index ---
+            self.index = FAISS.load_local(
+                self.db_path, 
+                self.embeddings, 
+                allow_dangerous_deserialization=True
+            )
+            return self.index
+        except Exception as e:
+            logger.error(f"❌ Failed to load Vector DB: {e}")
+            return None
 
 # --- EXECUTION BLOCK ---
 if __name__ == "__main__":
