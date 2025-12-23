@@ -1,8 +1,11 @@
 import time
 from fastapi import APIRouter, HTTPException, Request
-from app.schemas.chat import ChatRequest, ChatResponse, SourceDocument, Message
-from app.services.llm_engine import SpaceBrain
-from app.services.vector_db import VectorDBService
+
+# Data Models
+from app.schemas.chat import ChatRequest, ChatResponse, SourceDocument
+
+# LangChain Types (Crucial for the fix)
+from langchain_core.messages import HumanMessage, AIMessage
 
 # Create the Router
 router = APIRouter()
@@ -20,45 +23,57 @@ async def chat_endpoint(request: Request, payload: ChatRequest):
     """
     start_time = time.time()
     
-    # 1. Access the Brain (Loaded in main.py)
-    brain: SpaceBrain = request.app.state.brain
-    vdb: VectorDBService = request.app.state.vector_store
+    # --- 1. STARTUP CHECKS ---
+    # Access the Brain and DB that were loaded in main.py
+    brain = getattr(request.app.state, "brain", None)
+    vdb = getattr(request.app.state, "vector_store", None)
 
     if not brain or not vdb:
         raise HTTPException(status_code=503, detail="System initializing... please wait.")
 
-    # 2. Retrieval (RAG)
-    # Convert Pydantic 'Message' to LangChain format if needed, 
-    # but for now, we just need the text for the vector search.
+    # --- 2. RETRIEVAL (RAG) ---
     try:
-        # Search using the user's latest message
-        results = vdb.search(payload.message, k=3)
+        # We try the safe 'search' method first
+        if hasattr(vdb, "search"):
+            results = vdb.search(payload.message, k=3)
+        # Fallback to direct index access if 'search' wrapper is missing
+        elif hasattr(vdb, "load_knowledge_base"):
+             idx = vdb.load_knowledge_base()
+             results = idx.similarity_search(payload.message, k=3)
+        else:
+             results = []
+        
         context_chunks = [doc.page_content for doc in results]
     except Exception as e:
         print(f"⚠️ Retrieval Error: {e}")
         context_chunks = []
         results = []
 
-    # 3. Generation (The Thinking)
-    # We convert the list of Pydantic 'Message' objects to the format the Brain expects
-    # (Assuming Brain expects a list of dicts or LangChain objects - adapting strictly here)
+    # --- 3. HISTORY TYPE FIX ---
+    # Convert Pydantic models -> LangChain Objects
+    lc_history = []
+    for msg in payload.history:
+        if msg.role == "user":
+            lc_history.append(HumanMessage(content=msg.content))
+        elif msg.role == "assistant":
+            lc_history.append(AIMessage(content=msg.content))
+        # Note: We ignore 'system' messages here as the Brain manages its own persona.
+    
+    # --- 4. GENERATION ---
     try:
-        # Convert Pydantic list to simple list of dicts for the Brain
-        history_dicts = [{"role": m.role, "content": m.content} for m in payload.history]
-        
         ai_reply = brain.chat(
             query=payload.message,
             context_chunks=context_chunks,
-            history=history_dicts 
+            history=lc_history  # <--- PASSING CORRECT OBJECTS
         )
     except Exception as e:
         print(f"🔥 LLM Error: {e}")
         raise HTTPException(status_code=500, detail="Neural Core Failure")
 
-    # 4. Response Formatting
+    # --- 5. RESPONSE FORMATTING ---
     execution_time = time.time() - start_time
     
-    # Format sources nicely
+    # Format sources nicely for the UI
     source_docs = []
     for doc in results:
         source_docs.append(SourceDocument(
