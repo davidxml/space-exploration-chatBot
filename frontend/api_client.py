@@ -1,38 +1,55 @@
-import requests
+import logging
 import os
-from typing import List, Dict, Any
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+from typing import List, Dict, Any, Optional
+
+# --- PRODUCTION LOGGING ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("Royce-Client")
 
 # --- CONFIGURATION ---
-# In production, we would load this from an env var, 
-# but for now, we default to local dev.
+# Default to local, but overrideable by Docker/K8s env vars
 BASE_API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/api/v1")
+TIMEOUT_SECONDS = 45  # Strict timeout to prevent hanging
 
 class RoyceClient:
     """
-    Dedicated client for talking to the Royce Backend.
+    Production-ready HTTP client with connection pooling and retry logic.
     """
     
-    @staticmethod
-    def get_health() -> bool:
-        """Checks if the backend is online."""
+    def __init__(self):
+        # Initialize a Session for TCP connection reuse (Critical for performance)
+        self.session = requests.Session()
+        
+        # Configure robust retry strategy (3 retries on server errors 500/502/503/504)
+        retries = Retry(
+            total=3,
+            backoff_factor=1,  # Wait 1s, 2s, 4s...
+            status_forcelist=[500, 502, 503, 504],
+            allowed_methods=["POST", "GET"]
+        )
+        
+        # Mount the adapter to the session
+        adapter = HTTPAdapter(max_retries=retries)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+
+    def get_health(self) -> bool:
+        """
+        Fast health check with short timeout.
+        """
         try:
-            response = requests.get(f"{BASE_API_URL}/health", timeout=2)
+            response = self.session.get(f"{BASE_API_URL}/health", timeout=3)
             return response.status_code == 200
-        except requests.exceptions.RequestException:
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Health check failed: {e}")
             return False
 
-    @staticmethod
-    def send_chat(message: str, history: List[Dict[str, str]], temperature: float = 0.7) -> Dict[str, Any]:
+    def send_chat(self, message: str, history: List[Dict[str, str]], temperature: float = 0.7) -> Dict[str, Any]:
         """
-        Sends a message to the /chat endpoint.
-        
-        Args:
-            message (str): The user's question.
-            history (List[Dict]): Previous messages [{"role": "user", "content": "..."}]
-            temperature (float): Creativity (0.0 to 1.0).
-            
-        Returns:
-            Dict: The JSON response from the backend.
+        Sends a message to the backend with error handling and logging.
         """
         payload = {
             "message": message,
@@ -41,17 +58,33 @@ class RoyceClient:
         }
         
         try:
-            response = requests.post(
+            logger.info(f"📤 Sending payload to {BASE_API_URL}/chat")
+            response = self.session.post(
                 f"{BASE_API_URL}/chat", 
                 json=payload, 
-                timeout=60 # Give the LLM time to think
+                timeout=TIMEOUT_SECONDS
             )
-            response.raise_for_status() # Raise error for 400/500 codes
+            
+            # Raise error for 4xx client errors (which aren't covered by retry)
+            response.raise_for_status()
+            
             return response.json()
             
+        except requests.exceptions.HTTPError as e:
+            logger.error(f"❌ HTTP Error: {e.response.status_code} - {e.response.text}")
+            return {"error": f"Server Error ({e.response.status_code}): {e.response.text}"}
+            
         except requests.exceptions.ConnectionError:
+            logger.critical("❌ Connection Refused. Backend is unreachable.")
             return {"error": "Connection refused. Is the Backend running?"}
+            
         except requests.exceptions.Timeout:
-            return {"error": "The Neural Core timed out."}
-        except requests.exceptions.RequestException as e:
-            return {"error": f"Communication Error: {e}"}
+            logger.error("❌ Request Timed Out.")
+            return {"error": "The Neural Core timed out. The query might be too complex."}
+            
+        except Exception as e:
+            logger.exception("❌ Unexpected Error")
+            return {"error": f"System Failure: {str(e)}"}
+
+# Singleton Instance (Reuse this object to reuse the TCP connection)
+client = RoyceClient()
