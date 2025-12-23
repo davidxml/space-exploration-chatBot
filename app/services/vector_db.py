@@ -44,6 +44,23 @@ class VectorDBService:
         # Running on CPU? This model is optimized for it.
         self.embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 
+    # ... inside class VectorDBService ...
+
+    def search(self, query: str, k: int = 3):
+        """
+        Safe wrapper for searching the vector index.
+        """
+        # 1. Check if index is loaded in memory
+        if not hasattr(self, 'index') or self.index is None:
+            # 2. Try to load it from disk
+            self.index = self.load_knowledge_base()
+        
+        # 3. Perform search if index exists
+        if self.index:
+            return self.index.similarity_search(query, k=k)
+        
+        # 4. Return empty list if DB is broken/missing
+        return []
 
     def build_knowledge_base(self, force_clean: bool = True):
         """
