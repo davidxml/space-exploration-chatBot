@@ -14,7 +14,8 @@ class Settings:
     PORT: int = 8000
     
     # Secrets
-    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY")
+    # FIX: Add default value "" to ensure it is always a string
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     
     # Paths
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
