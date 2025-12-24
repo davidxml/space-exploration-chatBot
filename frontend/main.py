@@ -3,6 +3,7 @@ import requests
 import time
 import os
 from PIL import Image
+import random
 
 # --- CONFIGURATION ---
 BASE_URL = "http://127.0.0.1:8000"
@@ -36,13 +37,13 @@ if os.path.exists(image_path):
     except:
         pass
 
-# --- CSS : BLACK + HUD BLUE ---
+# --- CSS : BLACK + HUD BLUE + BRIGHTER STARS ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
 
 .stApp {
-    background-color: #020202;
+    background-color: #010101;
     color: #e6e6e6;
     font-family: 'Michroma', sans-serif;
 }
@@ -89,21 +90,29 @@ button[kind="secondary"] {
     pointer-events: none;
 }
 
+/* BRIGHTER, SPECULAR STARS */
 .star {
     position: absolute;
-    width: 2px;
-    height: 2px;
+    width: 1px;
+    height: 1px;
     background: #ffffff;
-    opacity: 0.15;
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(255,255,255,0.8), 0 0 12px rgba(255,255,255,0.4);
+    opacity: 0.2;
+    animation: twinkle 3s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
 }
 </style>
 """, unsafe_allow_html=True)
 
 # --- STATIC STAR FIELD ---
 stars_html = ""
-import random
-for _ in range(120):
-    stars_html += f"<div class='star' style='top:{random.randint(0,100)}%;left:{random.randint(0,100)}%;'></div>"
+for _ in range(150):  # more stars for density
+    stars_html += f"<div class='star' style='top:{random.randint(0,100)}%;left:{random.randint(0,100)}%;width:{random.choice([1,2,3])}px;height:{random.choice([1,2,3])}px;'></div>"
 
 st.markdown(f"<div class='star-field'>{stars_html}</div>", unsafe_allow_html=True)
 
@@ -118,7 +127,7 @@ def login_view():
         st.markdown("""
         <div style="border:1px solid #1e3a5f; padding:40px; background:#050505;">
             <h2 style="margin-bottom:5px;">Prepare for Entry</h2>
-            <p style="color:#3b82f6;">Let’s verify your access before we proceed.</p>
+            <p style="color:#3b82f6;">Let's verify your access before we proceed.</p>
         </div>
         """, unsafe_allow_html=True)
 
