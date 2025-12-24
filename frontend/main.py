@@ -1,4 +1,5 @@
 import streamlit as st
+import random
 from api_client import client
 
 # --- 1. APP CONFIGURATION ---
@@ -15,215 +16,212 @@ if "page" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- 3. PRODUCTION CSS & ASSETS ---
+# --- 3. GENERATE STARS (PYTHON LOGIC) ---
+# Denser starfield
+star_html = ""
+for _ in range(120):
+    top = random.randint(0, 100)
+    left = random.randint(0, 100)
+    size = random.choice([1, 2, 2, 3]) 
+    opacity = random.choice([0.3, 0.5, 0.8, 1.0])
+    # Blinking animation duration
+    duration = random.choice([3, 4, 5, 6])
+    star_html += f'''
+    <div class="star" style="
+        top:{top}%; left:{left}%; 
+        width:{size}px; height:{size}px; 
+        opacity:{opacity};
+        animation-duration: {duration}s;
+    "></div>'''
+
+# --- 4. CSS STYLING ---
 st.markdown("""
 <style>
-    /* IMPORT FONT FOR 'ROYC' (We build 'E' manually) */
+    /* NEW FONT: MICHROMA (Wide, Square, Sci-Fi) */
     @import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
 
-    /* FIX 1: GLOBAL SCROLL LOCK (Applied to Body) */
+    /* GLOBAL RESET */
     body {
-        overflow: hidden;
         background-color: #000000;
+        overflow: hidden;
     }
     
-    /* REMOVE STREAMLIT CHROME */
     #MainMenu, footer, header { visibility: hidden; }
-    .stApp { margin-top: -80px; } /* Pull content up to cover header gap */
+    .stApp { margin-top: -60px; }
 
-    /* --- BACKGROUND ANIMATION LAYER --- */
+    /* --- DEEP VOID BACKGROUND --- */
     .space-background {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: radial-gradient(circle at center, #0b0f15 0%, #000000 70%);
+        /* Deep radial gradient for depth */
+        background: radial-gradient(circle at 60% 40%, #0d121f 0%, #000000 85%);
         z-index: 0;
-        pointer-events: none; /* Let clicks pass through */
+        pointer-events: none;
     }
-    
+
+    /* STARS */
     .star {
-        position: absolute; background: white; border-radius: 50%;
-        box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 3px rgba(255, 255, 255, 0.6);
+        animation: twinkle infinite ease-in-out;
     }
     
+    @keyframes twinkle {
+        0%, 100% { opacity: 0.3; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1.1); }
+    }
+
+    /* --- NEW COMET ANIMATION (Top-Right -> Bottom-Left) --- */
     .comet {
         position: absolute;
-        width: 150px; height: 1px;
-        background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.8));
         opacity: 0;
-        transform: rotate(-45deg);
-        animation: meteor 6s linear infinite;
+        /* The "Head" and "Tail" Gradient - Tapered look, not a stick */
+        width: 300px; height: 3px;
+        background: linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+        border-radius: 50%; /* Rounded head */
+        filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+        animation: shoot 4s linear infinite;
     }
-
-    /* FIX 3: ROBUST METEOR ANIMATION */
-    @keyframes meteor {
+    
+    @keyframes shoot {
         0% {
-            transform: translateX(0) translateY(0) rotate(-45deg);
+            /* Start: Top Right (Off Screen) */
+            transform: translate(50vw, -50vh) rotate(225deg);
             opacity: 0;
         }
-        10% { opacity: 1; }
+        10% {
+            /* Fade In & Brighten */
+            opacity: 1;
+        }
         100% {
-            transform: translateX(140vw) translateY(140vh) rotate(-45deg);
+            /* End: Bottom Left (Off Screen) */
+            transform: translate(-100vw, 100vh) rotate(225deg);
             opacity: 0;
         }
     }
 
-    /* --- CENTER STAGE LAYOUT (Flexbox) --- */
+    /* --- CENTER CONTENT --- */
     .center-stage {
         position: fixed;
         top: 50%; left: 50%;
         transform: translate(-50%, -50%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        text-align: center;
         z-index: 10;
         width: 100%;
     }
 
-    /* --- LOGO TYPOGRAPHY --- */
-    .royce-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .royce-text {
-        font-family: 'Michroma', sans-serif;
-        font-size: 8rem;
-        color: #ffffff;
-        letter-spacing: 5px;
+    /* --- THE LOGO --- */
+    .royce-title {
+        font-family: 'Michroma', sans-serif; /* The new font */
+        font-size: 12rem; /* MASSIVE */
+        color: #FFFFFF;
         margin: 0;
-        /* Metallic Gradient */
-        background: linear-gradient(to bottom, #ffffff 0%, #a0a0a0 50%, #ffffff 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
-    }
-    
-    /* Mobile Responsiveness for Text */
-    @media (max-width: 768px) {
-        .royce-text { font-size: 4rem; }
-        .custom-e { width: 35px; height: 45px; }
-        .e-bar { height: 7px; }
+        line-height: 1;
+        letter-spacing: 10px;
+        
+        /* Bloom Effect */
+        text-shadow: 
+            0 0 15px rgba(255, 255, 255, 0.6),
+            0 0 30px rgba(255, 255, 255, 0.3);
     }
 
-    /* --- CUSTOM 'E' CONSTRUCTION --- */
-    .custom-e {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        width: 70px; height: 90px;
-        margin-left: 5px;
-    }
-    .e-bar {
-        height: 14px; width: 100%;
-        background: linear-gradient(90deg, #e0e0e0, #ffffff);
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    }
-    .e-top { border-top-right-radius: 10px; border-bottom-right-radius: 2px; }
-    .e-mid { width: 85%; border-radius: 2px; }
-    .e-bot { border-bottom-right-radius: 10px; border-top-right-radius: 2px; }
-
-    /* --- CTA BUTTON STYLING (Applied to Real Streamlit Button) --- */
+    /* --- THE BUTTON --- */
     div.stButton > button {
         background: transparent !important;
-        border: 1px solid rgba(192, 192, 192, 0.5) !important;
-        color: silver !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        color: #cccccc !important;
         font-family: 'Michroma', sans-serif !important;
-        letter-spacing: 3px;
-        padding: 15px 40px !important;
         font-size: 1rem !important;
-        margin-top: 50px !important;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
+        letter-spacing: 4px;
+        padding: 18px 60px !important;
+        margin-top: 80px !important;
+        border-radius: 0px !important;
+        transition: all 0.4s ease;
     }
-    
+
     div.stButton > button:hover {
         border-color: #ffffff !important;
         color: #ffffff !important;
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+        background: rgba(255,255,255,0.05) !important;
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
         transform: scale(1.05);
     }
-    
-    /* Center the Streamlit button container */
-    div.stButton {
-        text-align: center;
-        width: 100%;
-        display: flex;
-        justify-content: center;
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .royce-title { font-size: 5rem; letter-spacing: 2px; }
     }
     
-    /* --- COCKPIT SPECIFIC --- */
+    /* COCKPIT HEADER */
     .cockpit-header {
         font-family: 'Michroma', sans-serif;
         border-bottom: 1px solid #333;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
+        padding-bottom: 15px;
         color: white;
+        font-size: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
 </style>
 """, unsafe_allow_html=True)
 
-# --- FIX 2: GLOBAL BACKGROUND INJECTION ---
-st.markdown("""
+# --- 5. BACKGROUND RENDER ---
+# We inject the python-generated stars + manual comets
+st.markdown(f"""
 <div class="space-background">
-    <div class="star" style="top:10%; left:20%; width:2px; height:2px;"></div>
-    <div class="star" style="top:30%; left:80%; width:3px; height:3px; opacity:0.7;"></div>
-    <div class="star" style="top:70%; left:10%; width:2px; height:2px;"></div>
-    <div class="star" style="top:85%; left:60%; width:2px; height:2px;"></div>
-
-    <div class="comet" style="top:15%; left:-20%; animation-delay:0s;"></div>
-    <div class="comet" style="top:45%; left:-30%; animation-delay:2.5s;"></div>
-    <div class="comet" style="top:75%; left:-25%; animation-delay:4s;"></div>
+    {star_html}
+    <div class="comet" style="top:0%; right:0%; animation-delay:0s;"></div>
+    <div class="comet" style="top:20%; right:-10%; animation-delay:2.5s;"></div>
+    <div class="comet" style="top:-10%; right:20%; animation-delay:4s;"></div>
 </div>
 """, unsafe_allow_html=True)
 
-# --- 4. LANDING PAGE ---
+# --- 6. LANDING PAGE ---
 def show_landing():
-    # FIX 4: Center Stage Layout (Logo only)
+    # THE LOGO
     st.markdown("""
     <div class="center-stage">
-        <div class="royce-wrapper">
-            <span class="royce-text">ROYC</span>
-            <div class="custom-e">
-                <div class="e-bar e-top"></div>
-                <div class="e-bar e-mid"></div>
-                <div class="e-bar e-bot"></div>
-            </div>
-        </div>
-        <div style="height: 20px;"></div>
+        <h1 class="royce-title">ROYCE</h1>
     </div>
     """, unsafe_allow_html=True)
 
-    # FIX 5: Native Button Logic
-    # We use columns to "push" the button into the center-stage area visually
-    # using the CSS rules defined above (div.stButton > button { margin-top: 50px })
-    _, col, _ = st.columns([1, 1, 1])
+    # THE BUTTON
+    # We place the button, using columns to center it perfectly below the text
+    _, col, _ = st.columns([1, 0.6, 1])
     with col:
-        # This button is styled by the CSS to look exactly like the design
-        if st.button("ENTER THE COSMOS", key="enter_btn"):
+        # Pushing it down visually via CSS margin, but placing it here logically
+        if st.button("ENTER THE COSMOS"):
             st.session_state.page = "cockpit"
             st.rerun()
 
-# --- 5. COCKPIT PAGE ---
+# --- 7. COCKPIT PAGE ---
 def show_cockpit():
-    st.markdown("<div class='cockpit-header'>ROYCE // TERMINAL</div>", unsafe_allow_html=True)
+    st.markdown("""
+        <div class='cockpit-header'>
+            <span>ROYCE // SYSTEM CORE</span>
+            <span style='font-size:0.8rem; color:#00ff00;'>● ONLINE</span>
+        </div>
+    """, unsafe_allow_html=True)
     
-    # Chat Logic
+    # Render Messages
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    if prompt := st.chat_input("Input command..."):
+    # Input Logic
+    if prompt := st.chat_input("Enter coordinates..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
             msg_p = st.empty()
-            msg_p.markdown("`Processing...`")
+            msg_p.markdown("`Calculating...`")
             
-            # Use Backend Client
+            # Backend Call
             history = [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
             data = client.send_chat(prompt, history)
             
@@ -233,7 +231,7 @@ def show_cockpit():
                 msg_p.markdown(data["response"])
                 st.session_state.messages.append({"role": "assistant", "content": data["response"]})
 
-# --- 6. ROUTER ---
+# --- 8. MAIN ROUTER ---
 if __name__ == "__main__":
     if st.session_state.page == "landing":
         show_landing()
