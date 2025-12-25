@@ -19,8 +19,7 @@ class RoyceClient:
     Production-ready HTTP client with connection pooling and retry logic.
     """
     
-    def __init__(self):
-        # Initialize a Session for TCP connection reuse (Critical for performance)
+         # Initialize a Session for TCP connection reuse (Critical for performance)
         self.session = requests.Session()
         
         # Configure robust retry strategy (3 retries on server errors 500/502/503/504)
