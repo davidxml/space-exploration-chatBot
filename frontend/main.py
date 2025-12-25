@@ -105,17 +105,29 @@ button[kind="primary"] {{
 # ==========================================
 # 🔐 LOGIN VIEW
 # ==========================================
+# ==========================================
+# 🔐 LOGIN VIEW
+# ==========================================
 def login_view():
     st.markdown("<br><br><br>", unsafe_allow_html=True)
     _, center, _ = st.columns([1, 2, 1])
 
     with center:
+        # --- MODIFIED SECTION START ---
         st.markdown("""
-        <div style="border:1px solid #1e3a5f; padding:40px; background:#050505;">
-            <h2 style="margin-bottom:5px;">Prepare for Entry</h2>
-            <p style="color:#3b82f6;">Let's verify your access before we proceed.</p>
+        <div style="border:1px solid #1e3a5f; padding:40px; background:#050505; text-align: center; border-radius: 8px;">
+            <h2 style="
+                margin-bottom: 5px; 
+                color: #FFFFFF; 
+                font-weight: 700; 
+                font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+                font-size: 2.2rem;">
+                Prepare for Entry
+            </h2>
+            <p style="color:#3b82f6; font-size: 1rem;">Let's verify your access before we proceed.</p>
         </div>
         """, unsafe_allow_html=True)
+        # --- MODIFIED SECTION END ---
 
         st.markdown("<br>", unsafe_allow_html=True)
 
