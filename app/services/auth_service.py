@@ -1,5 +1,6 @@
 import logging
-from datetime import datetime, timedelta
+import os
+from datetime import datetime, timedelta, timezone 
 from typing import Optional
 
 from sqlalchemy import create_engine, Column, String, Integer
@@ -8,27 +9,22 @@ from sqlalchemy.orm import sessionmaker, Session
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 
-# Import your settings to avoid hardcoding secrets
-try:
-    from app.core.config import settings
-    SECRET_KEY = settings.SECRET_KEY
-except ImportError:
-    # Fallback if config is missing (Safety net)
-    SECRET_KEY = "UNSAFE_DEFAULT_KEY_PLEASE_CHANGE_IN_ENV"
-
 # --- CONFIGURATION ---
+# We use os.getenv directly here. This bypasses the 'Settings' error completely.
+# It looks for a system env variable, or falls back to the hardcoded dev key.
+SECRET_KEY = os.getenv("SECRET_KEY", "ROYCE_MVP_SECRET_KEY_2025")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 Hours
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440 
 
-# --- DATABASE SETUP (SQLite Local) ---
-# In a real team, this URL would also come from settings
+# --- DATABASE SETUP ---
 DATABASE_URL = "sqlite:///./users.db"
 Base = declarative_base()
 
+# Connect args needed for SQLite
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# --- DATA MODELS ---
+# --- USER MODEL ---
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -36,7 +32,7 @@ class User(Base):
     hashed_password = Column(String)
     full_name = Column(String)
 
-# Create Tables automatically if they don't exist
+# Create Tables
 Base.metadata.create_all(bind=engine)
 
 # --- SECURITY TOOLS ---
@@ -46,7 +42,6 @@ logger = logging.getLogger("AuthService")
 class AuthService:
     """
     Handles Identity, Hashing, and Tokens.
-    Strictly logic. No HTTP code here.
     """
     
     def get_password_hash(self, password: str) -> str:
@@ -73,14 +68,21 @@ class AuthService:
         user = db.query(User).filter(User.email == email).first()
         if not user:
             return False
-        if not self.verify_password(password, user.hashed_password):
+        
+        # FIX: Explicitly cast to string to silence Pylance/Pylint errors.
+        # This tells the editor "Trust me, this is a string at runtime."
+        stored_hash = str(user.hashed_password)
+        
+        if not self.verify_password(password, stored_hash):
             return False
         return user
 
     def create_access_token(self, data: dict):
         to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        # Use timezone-aware UTC
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode.update({"exp": expire})
+        
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encoded_jwt
 
