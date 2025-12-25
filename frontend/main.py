@@ -38,83 +38,69 @@ if os.path.exists(image_path):
         pass
 
 # --- CSS : BLACK + HUD BLUE + BRIGHTER STARS ---
-st.markdown("""
+
+star_divs = ""
+for i in range(100):
+    size = random.choice([1,2,3])
+    top = random.randint(0,100)
+    left = random.randint(0,100)
+    delay = round(random.uniform(0, 3), 2)
+    star_divs += f"""
+    .star{i} {{
+        position: absolute;
+        width: {size}px;
+        height: {size}px;
+        top: {top}%;
+        left: {left}%;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 6px rgba(255,255,255,0.8);
+        animation: twinkle 3s ease-in-out infinite;
+        animation-delay: {delay}s;
+    }}
+    """
+
+
+st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
+/* GLOBAL STYLING */
+.stApp {{ background-color: #000000; color: #00ffcc; overflow: hidden; }}
+header, footer {{ visibility: hidden; }}
 
-.stApp {
-    background-color: #010101;
-    color: #e6e6e6;
-    font-family: 'Michroma', sans-serif;
-}
+/* INPUT STYLING */
+.stTextInput input, .stTextInput > div > div > input {{
+    background-color: #111 !important;
+    color: #00ffcc !important;
+    border: 1px solid #222 !important;
+}}
 
-header, footer { visibility: hidden; }
+/* BUTTONS */
+button[kind="primary"] {{
+    background-color: #0085ff !important;
+    border: none !important;
+    color: #fff !important;
+}}
 
-.stTextInput input {
-    background: #0b0b0b !important;
-    color: #e6e6e6 !important;
-    border: 1px solid #1e3a5f !important;
-}
-
-button[kind="primary"] {
-    background: transparent !important;
-    border: 1px solid #3b82f6 !important;
-    color: #3b82f6 !important;
-    letter-spacing: 2px;
-}
-
-button[kind="primary"]:hover {
-    background: rgba(59,130,246,0.1) !important;
-    box-shadow: 0 0 18px rgba(59,130,246,0.6);
-}
-
-button[kind="secondary"] {
-    background: transparent !important;
-    border: 1px solid #333 !important;
-    color: #aaa !important;
-}
-
-[data-testid="stChatInput"] {
-    max-width: 900px;
+/* CHAT INPUT */
+[data-testid="stChatInput"] {{
+    max-width: 900px !important;
     margin: 0 auto;
-    position: fixed;
-    bottom: 30px;
-    left: 0;
-    right: 0;
-}
+    position: fixed; bottom: 30px; left: 0; right: 0; z-index: 100;
+}}
 
-.star-field {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-}
-
-/* BRIGHTER, SPECULAR STARS */
-.star {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    background: #ffffff;
-    border-radius: 50%;
-    box-shadow: 0 0 6px rgba(255,255,255,0.8), 0 0 12px rgba(255,255,255,0.4);
-    opacity: 0.2;
-    animation: twinkle 3s ease-in-out infinite;
-}
-
-@keyframes twinkle {
-    0%, 100% { opacity: 0.2; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
-}
+/* STARFIELD + ANIMATION */
+.star-field {{ position: fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }}
+@keyframes twinkle {{
+    0%,100% {{ opacity:0.2; transform:scale(1); }}
+    50% {{ opacity:1; transform:scale(1.2); }}
+}}
+{star_divs}
 </style>
+<div class="star-field">
+{"".join([f'<div class="star{i}"></div>' for i in range(100)])}
+</div>
 """, unsafe_allow_html=True)
 
-# --- STATIC STAR FIELD ---
-stars_html = ""
-for _ in range(150):  # more stars for density
-    stars_html += f"<div class='star' style='top:{random.randint(0,100)}%;left:{random.randint(0,100)}%;width:{random.choice([1,2,3])}px;height:{random.choice([1,2,3])}px;'></div>"
-
-st.markdown(f"<div class='star-field'>{stars_html}</div>", unsafe_allow_html=True)
 
 # ==========================================
 # 🔐 LOGIN VIEW
