@@ -63,7 +63,7 @@ for i in range(100):
 # --- GLOBAL CSS + BRAND HERO ---
 st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&display=swap');
 
 .stApp {{
     background-color: #000000;
@@ -89,39 +89,59 @@ header, footer {{ visibility: hidden; }}
 {star_divs}
 
 /* ===== ROYCE HERO ===== */
+/* REMOVE STREAMLIT TOP OFFSET */
+.block-container {{
+    padding-top: 0rem !important;
+}}
+
+/* HERO CONTAINER */
 .royce-hero {{
     position: relative;
-    height: 100vh;
+    min-height: 55vh;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 2;
 }}
 
+/* ROYCE TEXT */
 .royce-text {{
-    font-family: 'League Spartan', sans-serif;
-    font-size: clamp(4rem, 12vw, 10rem);
-    font-weight: 900;
-    letter-spacing: 0.15em;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(4rem, 11vw, 9rem);
+    font-weight: 800;
+    letter-spacing: 0.18em;
     color: #FFFFFF;
-    text-align: center;
+    line-height: 0.95;
+    margin: 0;
 }}
 
-.content-below {{
-    position: relative;
-    z-index: 3;
-    padding-bottom: 120px;
+/* SUBTEXT */
+.royce-subtext {{
+    margin-top: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: 2px solid rgba(255,255,255,0.8);
+    width: 0;
+    animation:
+        typing 3.5s steps(30, end) forwards,
+        blink 0.8s step-end infinite;
 }}
-</style>
 
-<div class="star-field">
-{"".join([f'<div class="star{i}"></div>' for i in range(100)])}
-</div>
+/* TYPING EFFECT */
+@keyframes typing {{
+    from {{ width: 0; }}
+    to {{width: 260px; }}
+}}
 
-<div class="royce-hero">
-    <div class="royce-text">ROYCE</div>
-</div>
-""", unsafe_allow_html=True)
+@keyframes blink {{
+    50% {{ border-color: transparent; }}
+}}""")
+
 
 # ==========================
 # 🔐 LOGIN VIEW
