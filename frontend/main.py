@@ -73,6 +73,7 @@ st.markdown(f"""
 
 header, footer {{ visibility: hidden; }}
 
+/* STARFIELD */
 .star-field {{
     position: fixed;
     top:0; left:0;
@@ -89,12 +90,13 @@ header, footer {{ visibility: hidden; }}
 {star_divs}
 
 /* ===== ROYCE HERO ===== */
-/* REMOVE STREAMLIT TOP OFFSET */
 .block-container {{
     padding-top: 0rem !important;
 }}
+.block-container > div:first-child {{
+    margin-top: 0 !important;
+}}
 
-/* HERO CONTAINER */
 .royce-hero {{
     position: relative;
     min-height: 55vh;
@@ -105,7 +107,6 @@ header, footer {{ visibility: hidden; }}
     z-index: 2;
 }}
 
-/* ROYCE TEXT */
 .royce-text {{
     font-family: 'Space Grotesk', sans-serif;
     font-size: clamp(4rem, 11vw, 9rem);
@@ -116,7 +117,6 @@ header, footer {{ visibility: hidden; }}
     margin: 0;
 }}
 
-/* SUBTEXT */
 .royce-subtext {{
     margin-top: 12px;
     font-family: 'Space Grotesk', sans-serif;
@@ -127,28 +127,36 @@ header, footer {{ visibility: hidden; }}
     overflow: hidden;
     border-right: 2px solid rgba(255,255,255,0.8);
     width: 0;
+    max-width: 280px;
     animation:
         typing 3.5s steps(30, end) forwards,
         blink 0.8s step-end infinite;
 }}
 
-/* TYPING EFFECT */
 @keyframes typing {{
     from {{ width: 0; }}
-    to {{width: 260px; }}
+    to {{ width: 100%; }}
 }}
 
 @keyframes blink {{
     50% {{ border-color: transparent; }}
-}}""")
+}}
+</style>
 
+<div class="star-field">
+{"".join([f'<div class="star{i}"></div>' for i in range(100)])}
+</div>
+
+<div class="royce-hero">
+    <div class="royce-text">ROYCE</div>
+    <div class="royce-subtext">explore beyond the known...</div>
+</div>
+""", unsafe_allow_html=True)
 
 # ==========================
 # 🔐 LOGIN VIEW
 # ==========================
 def login_view():
-    st.markdown('<div class="content-below">', unsafe_allow_html=True)
-
     _, center, _ = st.columns([1, 2, 1])
 
     with center:
@@ -208,8 +216,6 @@ def login_view():
                             st.error(resp.json().get("detail"))
                     except:
                         st.error("Signup service unavailable.")
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================
 # 🚀 CHAT VIEW
