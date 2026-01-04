@@ -62,3 +62,4 @@ echo -e "${CYAN}===================================================${NC}"
 streamlit run frontend/main.py
 
 # When Streamlit stops, the 'trap' above will trigger and kill the backend.
+# i guess this works 
