@@ -1,9 +1,9 @@
-import streamlit as st
-import requests
-import time
 import os
-from PIL import Image
 import random
+
+import requests
+import streamlit as st
+from PIL import Image
 
 # --- CONFIGURATION ---
 BASE_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
@@ -16,7 +16,7 @@ st.set_page_config(
     page_title="ROYCE | Secure Uplink",
     page_icon="🔐",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed",
 )
 
 # --- AUTH STATE ---
@@ -61,7 +61,8 @@ for i in range(100):
     """
 
 # --- GLOBAL CSS + BRAND HERO ---
-st.markdown(f"""
+st.markdown(
+    f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&display=swap');
 
@@ -151,7 +152,10 @@ header, footer {{ visibility: hidden; }}
     <div class="royce-text">ROYCE</div>
     <div class="royce-subtext">explore beyond the known...</div>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
+
 
 # ==========================
 # 🔐 LOGIN VIEW
@@ -160,7 +164,8 @@ def login_view():
     _, center, _ = st.columns([1, 2, 1])
 
     with center:
-        st.markdown("""
+        st.markdown(
+            """
         <div style="border:1px solid #1e3a5f; padding:40px; background:#050505;
         text-align:center; border-radius:8px;">
             <h2 style="color:#FFFFFF; font-weight:700;">
@@ -168,7 +173,9 @@ def login_view():
             </h2>
             <p style="color:#3b82f6;">Let's verify your access before we proceed.</p>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -179,18 +186,24 @@ def login_view():
                 name = st.text_input("Preferred Name")
                 email = st.text_input("Email Address")
                 password = st.text_input("Passcode", type="password")
-                submit = st.form_submit_button("Confirm Access", type="primary", use_container_width=True)
+                submit = st.form_submit_button(
+                    "Confirm Access", type="primary", use_container_width=True
+                )
 
                 if submit:
                     if not email or not password:
                         st.error("Access couldn’t be confirmed.")
                     else:
                         try:
-                            resp = requests.post(LOGIN_URL, json={"email": email, "password": password})
+                            resp = requests.post(
+                                LOGIN_URL, json={"email": email, "password": password}
+                            )
                             if resp.status_code == 200:
                                 data = resp.json()
                                 st.session_state.token = data["access_token"]
-                                st.session_state.user_name = name or data.get("user_name", "Explorer")
+                                st.session_state.user_name = name or data.get(
+                                    "user_name", "Explorer"
+                                )
                                 st.rerun()
                             else:
                                 st.error("Invalid credentials.")
@@ -202,13 +215,19 @@ def login_view():
                 full_name = st.text_input("Full Name")
                 email = st.text_input("Email Address")
                 password = st.text_input("Create Passcode", type="password")
-                submit = st.form_submit_button("Generate Identity", use_container_width=True)
+                submit = st.form_submit_button(
+                    "Generate Identity", use_container_width=True
+                )
 
                 if submit and full_name and email and password:
                     try:
                         resp = requests.post(
                             SIGNUP_URL,
-                            json={"email": email, "password": password, "full_name": full_name}
+                            json={
+                                "email": email,
+                                "password": password,
+                                "full_name": full_name,
+                            },
                         )
                         # Accept any successful 2xx response (backend returns 201 on create)
                         if resp.ok:
@@ -219,18 +238,27 @@ def login_view():
                             st.success(msg or "Identity created. You may now log in.")
                         else:
                             try:
-                                err = resp.json().get("detail") or resp.json().get("message")
+                                err = resp.json().get("detail") or resp.json().get(
+                                    "message"
+                                )
                             except Exception:
-                                err = resp.text or f"Signup failed (status {resp.status_code})"
+                                err = (
+                                    resp.text
+                                    or f"Signup failed (status {resp.status_code})"
+                                )
                             st.error(err)
                     except Exception:
                         st.error("Signup service unavailable.")
+
 
 # ==========================
 # 🚀 CHAT VIEW
 # ==========================
 def chat_view():
-    st.markdown("<h3>ROYCE</h3><p style='color:#3b82f6;'>Secure channel active</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<h3>ROYCE</h3><p style='color:#3b82f6;'>Secure channel active</p>",
+        unsafe_allow_html=True,
+    )
 
     if st.button("LOGOUT"):
         st.session_state.token = None
@@ -250,13 +278,16 @@ def chat_view():
                 resp = requests.post(
                     CHAT_URL,
                     json={"message": prompt, "history": st.session_state.messages},
-                    headers={"Authorization": f"Bearer {st.session_state.token}"}
+                    headers={"Authorization": f"Bearer {st.session_state.token}"},
                 )
                 reply = resp.json()["response"]
                 holder.markdown(reply)
-                st.session_state.messages.append({"role": "assistant", "content": reply})
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": reply}
+                )
             except:
                 holder.error("Signal lost.")
+
 
 # --- ROUTER ---
 if st.session_state.token:
