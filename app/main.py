@@ -22,8 +22,13 @@ async def lifespan(app: FastAPI):
     try:
         # 1. Initialize Memory (Vector DB)
         vdb = VectorDBService()
-        # Store in app.state so routers can access it via request.app.state.vector_store
-        app.state.vector_store = vdb.load_knowledge_base()
+        
+        # FIX: Load the index internally, but do not assign the result to app.state
+        vdb.load_knowledge_base() 
+        
+        # FIX: Store the SERVICE OBJECT, not the raw index.
+        # This ensures routes can call vdb.search()
+        app.state.vector_store = vdb
         
         # 2. Initialize Brain (LLM)
         app.state.brain = SpaceBrain()
