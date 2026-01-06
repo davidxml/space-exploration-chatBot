@@ -29,23 +29,21 @@ async def chat_endpoint(request: Request, payload: ChatRequest):
     vdb = getattr(request.app.state, "vector_store", None)
 
     if not brain or not vdb:
+        # If the server is still starting up, vdb might be None.
         raise HTTPException(status_code=503, detail="System initializing... please wait.")
 
     # --- 2. RETRIEVAL (RAG) ---
     try:
-        # We try the safe 'search' method first
-        if hasattr(vdb, "search"):
-            results = vdb.search(payload.message, k=3)
-        # Fallback to direct index access if 'search' wrapper is missing
-        elif hasattr(vdb, "load_knowledge_base"):
-             idx = vdb.load_knowledge_base()
-             results = idx.similarity_search(payload.message, k=3)
-        else:
-             results = []
+        # FIX: We now TRUST that vdb is the Service. 
+        # We call the safe .search() method directly.
+        results = vdb.search(payload.message, k=3)
         
+        # Extract text for the LLM
         context_chunks = [doc.page_content for doc in results]
+        
     except Exception as e:
         print(f"⚠️ Retrieval Error: {e}")
+        # If the DB fails, we don't crash the chat. We just give it zero context.
         context_chunks = []
         results = []
 
@@ -64,7 +62,7 @@ async def chat_endpoint(request: Request, payload: ChatRequest):
         ai_reply = brain.chat(
             query=payload.message,
             context_chunks=context_chunks,
-            history=lc_history  # <--- PASSING CORRECT OBJECTS
+            history=lc_history
         )
     except Exception as e:
         print(f"🔥 LLM Error: {e}")
