@@ -210,11 +210,20 @@ def login_view():
                             SIGNUP_URL,
                             json={"email": email, "password": password, "full_name": full_name}
                         )
-                        if resp.status_code == 200:
-                            st.success("Identity created. You may now log in.")
+                        # Accept any successful 2xx response (backend returns 201 on create)
+                        if resp.ok:
+                            try:
+                                msg = resp.json().get("message")
+                            except Exception:
+                                msg = None
+                            st.success(msg or "Identity created. You may now log in.")
                         else:
-                            st.error(resp.json().get("detail"))
-                    except:
+                            try:
+                                err = resp.json().get("detail") or resp.json().get("message")
+                            except Exception:
+                                err = resp.text or f"Signup failed (status {resp.status_code})"
+                            st.error(err)
+                    except Exception:
                         st.error("Signup service unavailable.")
 
 # ==========================
