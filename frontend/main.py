@@ -252,7 +252,7 @@ def login_view():
 
 
 # ==========================
-# 🚀 CHAT VIEW
+# 🚀 CHAT VIEW (UPDATED FIX)
 # ==========================
 def chat_view():
     st.markdown(
@@ -265,13 +265,22 @@ def chat_view():
         st.session_state.messages = []
         st.rerun()
 
+    # 1. RENDER HISTORY
     for msg in st.session_state.messages:
         avatar = "🧑‍🚀" if msg["role"] == "user" else ROYCE_AVATAR
         with st.chat_message(msg["role"], avatar=avatar):
             st.markdown(msg["content"])
 
+    # 2. HANDLE NEW INPUT
     if prompt := st.chat_input("Enter command coordinates…"):
+        # A. Add to session state immediately
         st.session_state.messages.append({"role": "user", "content": prompt})
+        
+        # B. FORCE RENDER USER MESSAGE NOW (This fixes the delay bug)
+        with st.chat_message("user", avatar="🧑‍🚀"):
+            st.markdown(prompt)
+
+        # C. Generate & Render Response
         with st.chat_message("assistant", avatar=ROYCE_AVATAR):
             holder = st.empty()
             try:
@@ -280,13 +289,19 @@ def chat_view():
                     json={"message": prompt, "history": st.session_state.messages},
                     headers={"Authorization": f"Bearer {st.session_state.token}"},
                 )
-                reply = resp.json()["response"]
-                holder.markdown(reply)
-                st.session_state.messages.append(
-                    {"role": "assistant", "content": reply}
-                )
-            except:
-                holder.error("Signal lost.")
+                
+                if resp.status_code == 200:
+                    reply = resp.json()["response"]
+                    holder.markdown(reply)
+                    
+                    # D. Add Bot reply to history
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": reply}
+                    )
+                else:
+                    holder.error(f"Error {resp.status_code}: {resp.text}")
+            except Exception as e:
+                holder.error(f"Signal lost. {e}")
 
 
 # --- ROUTER ---
