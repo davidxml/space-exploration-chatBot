@@ -306,6 +306,6 @@ def chat_view():
 
 # --- ROUTER ---
 if st.session_state.token:
-    chat_view()
+    chat_view() # this routes
 else:
     login_view()
