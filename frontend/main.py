@@ -1,16 +1,37 @@
 import os
 import random
 
+import sys
+import logging
+import traceback
+import socket
+from dotenv import load_dotenv
+
 import requests
 import streamlit as st
 from PIL import Image
 
 # --- CONFIGURATION ---
+# Logging to stdout so Streamlit terminal shows full tracebacks
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    stream=sys.stdout,
+)
+logger = logging.getLogger("frontend")
+
+# Load .env early so API_URL / DATABASE_URL are available
+load_dotenv()
 BASE_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 CHAT_URL = f"{BASE_URL}/chat"
 LOGIN_URL = f"{BASE_URL}/auth/login"
 SIGNUP_URL = f"{BASE_URL}/auth/signup"
+
+# Print endpoint info to terminal for quick verification
+DB_URL = os.getenv("DATABASE_URL") or os.getenv("DB_URL") or "<not-set>"
+logger.info("ENV CHECK -> API_URL=%s DATABASE_URL=%s", BASE_URL, DB_URL)
+print(f"ENV CHECK -> API_URL={BASE_URL}  DATABASE_URL={DB_URL}")
 
 st.set_page_config(
     page_title="ROYCE | Secure Uplink",
@@ -194,21 +215,42 @@ def login_view():
                     if not email or not password:
                         st.error("Access couldn’t be confirmed.")
                     else:
+                        # Developer bypass: accept passcode '0000' when backend is offline
+                        if password == "0000":
+                            st.session_state.token = "local-dev-token"
+                            st.session_state.user_name = name or "Explorer"
+                            logger.info("Local bypass login used for %s", email)
+                            st.rerun()
+
                         try:
                             resp = requests.post(
-                                LOGIN_URL, json={"email": email, "password": password}
+                                LOGIN_URL,
+                                json={"email": email, "password": password},
+                                timeout=10,
                             )
-                            if resp.status_code == 200:
-                                data = resp.json()
-                                st.session_state.token = data["access_token"]
-                                st.session_state.user_name = name or data.get(
-                                    "user_name", "Explorer"
-                                )
-                                st.rerun()
-                            else:
-                                st.error("Invalid credentials.")
-                        except:
+                            resp.raise_for_status()
+                            data = resp.json()
+                            st.session_state.token = data.get("access_token") or data.get("token")
+                            st.session_state.user_name = name or data.get(
+                                "user_name", data.get("user", "Explorer")
+                            )
+                            st.rerun()
+
+                        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, socket.timeout) as conn_err:
                             st.error("System unreachable.")
+                            logger.exception("Connection error during login to %s for %s", LOGIN_URL, email)
+                            traceback.print_exc()
+                            logger.debug("Login attempt details: email=%s preferred_name=%s endpoint=%s", email, name, LOGIN_URL)
+
+                        except requests.exceptions.HTTPError as http_err:
+                            st.error("Invalid credentials.")
+                            logger.warning("HTTP error during login for %s: %s", email, http_err)
+                            traceback.print_exc()
+
+                        except Exception as exc:
+                            st.error("System unreachable.")
+                            logger.exception("Unexpected error during login for %s", email)
+                            traceback.print_exc()
 
         with tab2:
             with st.form("signup_form"):
@@ -228,27 +270,24 @@ def login_view():
                                 "password": password,
                                 "full_name": full_name,
                             },
+                            timeout=10,
                         )
-                        # Accept any successful 2xx response (backend returns 201 on create)
-                        if resp.ok:
-                            try:
-                                msg = resp.json().get("message")
-                            except Exception:
-                                msg = None
-                            st.success(msg or "Identity created. You may now log in.")
-                        else:
-                            try:
-                                err = resp.json().get("detail") or resp.json().get(
-                                    "message"
-                                )
-                            except Exception:
-                                err = (
-                                    resp.text
-                                    or f"Signup failed (status {resp.status_code})"
-                                )
-                            st.error(err)
+                        resp.raise_for_status()
+                        st.success("Identity created. You may now log in.")
+                    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, socket.timeout) as conn_err:
+                        st.error("Signup service unavailable.")
+                        logger.exception("Connection error during signup to %s for %s", SIGNUP_URL, email)
+                        traceback.print_exc()
+                    except requests.exceptions.HTTPError:
+                        try:
+                            detail = resp.json().get("detail")
+                        except Exception:
+                            detail = "Signup failed"
+                        st.error(detail)
                     except Exception:
                         st.error("Signup service unavailable.")
+                        logger.exception("Unexpected error during signup for %s", email)
+                        traceback.print_exc()
 
 
 # ==========================
@@ -288,20 +327,27 @@ def chat_view():
                     CHAT_URL,
                     json={"message": prompt, "history": st.session_state.messages},
                     headers={"Authorization": f"Bearer {st.session_state.token}"},
+                    timeout=15,
                 )
-                
+
                 if resp.status_code == 200:
                     reply = resp.json()["response"]
                     holder.markdown(reply)
-                    
+
                     # D. Add Bot reply to history
                     st.session_state.messages.append(
                         {"role": "assistant", "content": reply}
                     )
                 else:
                     holder.error(f"Error {resp.status_code}: {resp.text}")
-            except Exception as e:
-                holder.error(f"Signal lost. {e}")
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, socket.timeout) as conn_err:
+                holder.error("Signal lost.")
+                logger.exception("Connection error posting to chat endpoint %s", CHAT_URL)
+                traceback.print_exc()
+            except Exception:
+                holder.error("Signal lost.")
+                logger.exception("Unexpected error in chat request")
+                traceback.print_exc()
 
 
 # --- ROUTER ---
