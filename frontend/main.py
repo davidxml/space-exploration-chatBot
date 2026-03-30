@@ -10,6 +10,11 @@ from dotenv import load_dotenv
 import requests
 import streamlit as st
 from PIL import Image
+import json
+from pathlib import Path
+import hashlib
+import secrets
+from typing import Optional
 
 # --- CONFIGURATION ---
 # Logging to stdout so Streamlit terminal shows full tracebacks
@@ -32,6 +37,63 @@ SIGNUP_URL = f"{BASE_URL}/auth/signup"
 DB_URL = os.getenv("DATABASE_URL") or os.getenv("DB_URL") or "<not-set>"
 logger.info("ENV CHECK -> API_URL=%s DATABASE_URL=%s", BASE_URL, DB_URL)
 print(f"ENV CHECK -> API_URL={BASE_URL}  DATABASE_URL={DB_URL}")
+
+# --- LOCAL USER STORE (for offline signup/login) ---
+REPO_ROOT = Path(__file__).resolve().parent.parent
+USER_STORE_DIR = REPO_ROOT / "data" / "users"
+
+
+def ensure_user_store() -> None:
+    USER_STORE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _sanitize_email(email: str) -> str:
+    return email.replace("@", "_at_").replace(".", "_")
+
+
+def _user_file(email: str) -> Path:
+    ensure_user_store()
+    name = _sanitize_email(email)
+    return USER_STORE_DIR / f"{name}.json"
+
+
+def save_user(full_name: str, email: str, password: str) -> None:
+    salt = secrets.token_hex(16)
+    pw_hash = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100_000).hex()
+    payload = {"full_name": full_name, "email": email, "pw_hash": pw_hash, "salt": salt}
+    path = _user_file(email)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh)
+    logger.info("Saved local user %s to %s", email, path)
+
+
+def load_user(email: str) -> Optional[dict]:
+    path = _user_file(email)
+    if not path.exists():
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception:
+        logger.exception("Failed reading user file %s", path)
+        return None
+
+
+def verify_user(email: str, password: str) -> bool:
+    user = load_user(email)
+    if not user:
+        return False
+    salt = user.get("salt")
+    expected = user.get("pw_hash")
+    if not salt or not expected:
+        return False
+    pw_hash = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100_000).hex()
+    return secrets.compare_digest(pw_hash, expected)
+
+
+def is_user_store_empty() -> bool:
+    ensure_user_store()
+    return not any(USER_STORE_DIR.iterdir())
 
 st.set_page_config(
     page_title="ROYCE | Secure Uplink",
@@ -56,8 +118,8 @@ ROYCE_AVATAR = "https://cdn-icons-png.flaticon.com/512/2026/2026521.png"
 if os.path.exists(image_path):
     try:
         ROYCE_AVATAR = Image.open(image_path)
-    except:
-        pass
+    except Exception:
+        print("Image couldn't be loaded")
 
 # --- STARFIELD ---
 star_divs = ""
@@ -222,34 +284,24 @@ def login_view():
                             logger.info("Local bypass login used for %s", email)
                             st.rerun()
 
+                        # Local-first authentication: check local user store
                         try:
-                            resp = requests.post(
-                                LOGIN_URL,
-                                json={"email": email, "password": password},
-                                timeout=10,
-                            )
-                            resp.raise_for_status()
-                            data = resp.json()
-                            st.session_state.token = data.get("access_token") or data.get("token")
-                            st.session_state.user_name = name or data.get(
-                                "user_name", data.get("user", "Explorer")
-                            )
-                            st.rerun()
-
-                        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, socket.timeout) as conn_err:
-                            st.error("System unreachable.")
-                            logger.exception("Connection error during login to %s for %s", LOGIN_URL, email)
-                            traceback.print_exc()
-                            logger.debug("Login attempt details: email=%s preferred_name=%s endpoint=%s", email, name, LOGIN_URL)
-
-                        except requests.exceptions.HTTPError as http_err:
-                            st.error("Invalid credentials.")
-                            logger.warning("HTTP error during login for %s: %s", email, http_err)
-                            traceback.print_exc()
-
-                        except Exception as exc:
-                            st.error("System unreachable.")
-                            logger.exception("Unexpected error during login for %s", email)
+                            if is_user_store_empty():
+                                st.error("No registered users found. Please sign up first.")
+                            else:
+                                local_user = load_user(email)
+                                if local_user:
+                                    if verify_user(email, password):
+                                        st.session_state.token = "local-user-token"
+                                        st.session_state.user_name = name or local_user.get("full_name", "Explorer")
+                                        logger.info("Local user login succeeded for %s", email)
+                                        st.rerun()
+                                    else:
+                                        st.error("Incorrect email or passcode.")
+                                else:
+                                    st.error("Incorrect email or passcode.")
+                        except Exception:
+                            logger.exception("Error checking local user store for %s", email)
                             traceback.print_exc()
 
         with tab2:
@@ -263,30 +315,31 @@ def login_view():
 
                 if submit and full_name and email and password:
                     try:
-                        resp = requests.post(
-                            SIGNUP_URL,
-                            json={
-                                "email": email,
-                                "password": password,
-                                "full_name": full_name,
-                            },
-                            timeout=10,
-                        )
-                        resp.raise_for_status()
-                        st.success("Identity created. You may now log in.")
-                    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, socket.timeout) as conn_err:
-                        st.error("Signup service unavailable.")
-                        logger.exception("Connection error during signup to %s for %s", SIGNUP_URL, email)
-                        traceback.print_exc()
-                    except requests.exceptions.HTTPError:
+                        # Save locally first
+                        save_user(full_name, email, password)
+                        st.success("Identity created locally. You may now log in.")
+
+                        # Try to notify backend if available (best-effort)
                         try:
-                            detail = resp.json().get("detail")
-                        except Exception:
-                            detail = "Signup failed"
-                        st.error(detail)
+                            resp = requests.post(
+                                SIGNUP_URL,
+                                json={
+                                    "email": email,
+                                    "password": password,
+                                    "full_name": full_name,
+                                },
+                                timeout=10,
+                            )
+                            resp.raise_for_status()
+                            logger.info("Signup propagated to backend for %s", email)
+                        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, socket.timeout):
+                            logger.warning("Backend signup unavailable; saved locally for %s", email)
+                        except requests.exceptions.HTTPError:
+                            logger.warning("Backend signup returned error for %s", email)
+
                     except Exception:
-                        st.error("Signup service unavailable.")
-                        logger.exception("Unexpected error during signup for %s", email)
+                        st.error("Failed to save signup locally.")
+                        logger.exception("Failed saving local signup for %s", email)
                         traceback.print_exc()
 
 
